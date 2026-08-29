@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>决策终端 v4 · Safety + Auto Data</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F0EA; --card:#FFFFFF; --sunk:#FAF8F4;
+  --ink:#1B1E24; --ink2:#4A515C; --ink3:#8A8F99;
+  --rule:#DCD8CE; --rule2:#C4BFB2;
+  --pass:#0F7B4F; --wait:#9A6B00; --stop:#B3261E; --struct:#1F4E79;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --info:#315C8A;
+  --sans:'Noto Sans SC',system-ui,sans-serif;
+  --serif:'Noto Serif SC',serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-weight:400;line-height:1.7;-webkit-text-size-adjust:100%}
+.wrap{max-width:820px;margin:0 auto;padding:0 16px 80px}
+
+/* ── 页眉 ── */
+header{padding:26px 0 18px;border-bottom:2px solid var(--ink)}
+.hd-row{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--serif);font-size:26px;font-weight:700;letter-spacing:.04em;line-height:1.3}
+h1 small{display:block;font-family:var(--mono);font-size:10px;font-weight:400;color:var(--ink3);letter-spacing:.18em;text-transform:uppercase;margin-top:6px}
+.hd-note{font-family:var(--mono);font-size:11px;color:var(--ink3);text-align:right}
+
+/* ── 声明条 ── */
+.disclaimer{background:var(--sunk);border:1px solid var(--rule);border-left:3px solid var(--stop);padding:12px 14px;margin:18px 0;font-size:12.5px;color:var(--ink2);line-height:1.8}
+.disclaimer b{color:var(--stop)}
+
+/* ── 标签栏 ── */
+nav{display:flex;gap:0;margin:20px 0 26px;border-bottom:1px solid var(--rule2);overflow-x:auto;-webkit-overflow-scrolling:touch}
+nav button{flex:0 0 auto;background:none;border:none;border-bottom:2px solid transparent;padding:11px 15px;font-family:var(--sans);font-size:14px;font-weight:500;color:var(--ink3);cursor:pointer;white-space:nowrap;transition:color .15s}
+nav button:hover{color:var(--ink2)}
+nav button.on{color:var(--ink);border-bottom-color:var(--ink)}
+nav button:focus-visible{outline:2px solid var(--struct);outline-offset:-2px}
+
+.panel{display:none}
+.panel.on{display:block}
+
+/* ── 区块 ── */
+section{background:var(--card);border:1px solid var(--rule);padding:20px;margin-bottom:18px}
+h2{font-family:var(--serif);font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:.02em}
+.sub{font-size:12.5px;color:var(--ink3);margin-bottom:16px;line-height:1.7}
+h3{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--rule)}
+h3:first-child{margin-top:0}
+
+/* ── 表单 ── */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 14px}
+.f label{display:block;font-size:11.5px;color:var(--ink2);margin-bottom:4px;font-weight:500}
+.f label i{font-style:normal;color:var(--ink3);font-weight:400}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--rule2);background:var(--sunk);font-family:var(--mono);font-size:13px;color:var(--ink);border-radius:0}
+textarea{font-family:var(--sans);line-height:1.7;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--struct);outline-offset:-1px;background:#fff}
+select{font-family:var(--sans);font-size:13px}
+
+button.act{margin-top:16px;width:100%;padding:13px;background:var(--ink);color:var(--paper);border:none;font-family:var(--sans);font-size:15px;font-weight:500;letter-spacing:.06em;cursor:pointer}
+button.act:hover{background:var(--struct)}
+button.act:focus-visible{outline:3px solid var(--struct);outline-offset:2px}
+button.mini{padding:7px 12px;background:none;border:1px solid var(--rule2);font-family:var(--sans);font-size:12px;color:var(--ink2);cursor:pointer}
+button.mini:hover{border-color:var(--ink);color:var(--ink)}
+
+/* ── 闸门柱（签名元素） ── */
+.gates{margin-top:22px}
+.gate{border:1px solid var(--rule2);border-left-width:4px;background:var(--card);padding:13px 15px;margin-bottom:9px;position:relative;transition:opacity .2s}
+.gate .gt{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.gate .gno{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--ink3)}
+.gate .gname{font-family:var(--serif);font-size:15px;font-weight:600}
+.gate .gmark{margin-left:auto;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.1em}
+.gate .gdetail{font-size:12.5px;color:var(--ink2);margin-top:7px;line-height:1.8}
+.gate .gdetail code{font-family:var(--mono);font-size:12px;background:var(--sunk);padding:1px 5px;border:1px solid var(--rule)}
+.gate.pass{border-left-color:var(--pass)} .gate.pass .gmark{color:var(--pass)}
+.gate.wait{border-left-color:var(--wait)} .gate.wait .gmark{color:var(--wait)}
+.gate.stop{border-left-color:var(--stop);background:#FDF6F5} .gate.stop .gmark{color:var(--stop)}
+.gate.shut{opacity:.4;background-image:repeating-linear-gradient(45deg,transparent,transparent 7px,var(--rule) 7px,var(--rule) 8px)}
+.gate.shut .gdetail{color:var(--ink3)}
+
+/* ── 判定印章 ── */
+.verdict{display:flex;align-items:center;gap:20px;padding:24px 20px;border:1px solid var(--rule2);background:var(--sunk);margin-top:22px;flex-wrap:wrap}
+.stamp{flex:0 0 auto;width:108px;height:108px;border:3.5px solid;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-9deg);font-family:var(--serif);font-weight:700}
+.stamp .sv{font-size:27px;letter-spacing:.08em;line-height:1}
+.stamp .sl{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;margin-top:6px;font-weight:400}
+.stamp.buy{border-color:var(--pass);color:var(--pass)}
+.stamp.watch{border-color:var(--wait);color:var(--wait)}
+.stamp.no{border-color:var(--stop);color:var(--stop)}
+.vtext{flex:1;min-width:210px}
+.vtext .vh{font-family:var(--serif);font-size:16px;font-weight:600;margin-bottom:6px}
+.vtext .vb{font-size:13px;color:var(--ink2);line-height:1.85}
+
+/* ── 交易卡 ── */
+.card-out{margin-top:18px;border:1px solid var(--ink);background:var(--card)}
+.card-out .ch{background:var(--ink);color:var(--paper);padding:9px 14px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;display:flex;justify-content:space-between;align-items:center}
+.card-out .cb{padding:14px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px dashed var(--rule);font-size:13px}
+.kv:last-child{border-bottom:none}
+.kv .k{color:var(--ink2)}
+.kv .v{font-family:var(--mono);font-weight:500;text-align:right}
+.kv .v.p{color:var(--pass)} .kv .v.s{color:var(--stop)} .kv .v.w{color:var(--wait)}
+
+/* ── 表格 ── */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);padding:8px 6px;border-bottom:1px solid var(--rule2);font-weight:500}
+td{padding:9px 6px;border-bottom:1px solid var(--rule);color:var(--ink2);vertical-align:top}
+td.n{font-family:var(--mono)}
+
+/* ── 持仓行 ── */
+.hrow{border:1px solid var(--rule);background:var(--sunk);padding:14px;margin-bottom:12px}
+.hrow .hh{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
+.hrow .ht{font-family:var(--mono);font-size:16px;font-weight:600;letter-spacing:.06em}
+.chk{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2);margin-top:9px}
+.chk input{width:auto;margin:0}
+
+/* ── 告警 ── */
+.alert{border-left:4px solid;padding:11px 13px;margin-bottom:8px;font-size:12.5px;line-height:1.75;background:var(--card)}
+.alert.stop{border-color:var(--stop);background:#FDF6F5}
+.alert.wait{border-color:var(--wait);background:#FDFAF2}
+.alert.pass{border-color:var(--pass);background:#F4FAF7}
+.alert b{display:block;font-family:var(--serif);font-size:13.5px;margin-bottom:3px;color:var(--ink)}
+
+/* ── 链接卡 ── */
+.links{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.links a{display:block;padding:11px 13px;border:1px solid var(--rule2);background:var(--sunk);text-decoration:none;color:var(--ink);transition:background .15s}
+.links a:hover{background:#fff;border-color:var(--ink)}
+.links .ln{font-family:var(--mono);font-size:12.5px;font-weight:600}
+.links .ld{font-size:11px;color:var(--ink3);margin-top:2px;line-height:1.5}
+
+.tag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:2px 7px;border:1px solid var(--rule2);color:var(--ink3);margin-right:5px}
+.hint{font-size:11.5px;color:var(--ink3);line-height:1.75;margin-top:9px}
+.copybox{width:100%;min-height:150px;font-family:var(--mono);font-size:11.5px;line-height:1.65;margin-top:12px}
+.empty{padding:26px 16px;text-align:center;color:var(--ink3);font-size:13px;border:1px dashed var(--rule2);background:var(--sunk)}
+.auto-box{border:1px solid var(--rule2);border-left:4px solid var(--info);background:#F5F8FB;padding:14px 15px;margin:18px 0}
+.auto-box .auto-title{font-family:var(--serif);font-weight:700;font-size:14px;margin-bottom:6px}
+.auto-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+button.auto{padding:10px 12px;border:1px solid var(--rule2);background:#fff;font-family:var(--sans);font-size:12.5px;cursor:pointer}
+button.auto:hover{border-color:var(--info)}
+.auto-status{font-size:11.5px;color:var(--ink2);margin-top:9px;line-height:1.7}
+.auto-status.ok{color:var(--pass)} .auto-status.bad{color:var(--stop)} .auto-status.wait{color:var(--wait)}
+.data-badge{display:inline-block;font-family:var(--mono);font-size:9.5px;padding:2px 6px;border:1px solid var(--rule2);margin-left:5px;color:var(--ink3)}
+
+@media(max-width:640px){
+  .grid,.grid3,.links,.auto-actions{grid-template-columns:1fr}
+  h1{font-size:21px}
+  .wrap{padding:0 12px 60px}
+  section{padding:16px}
+  .stamp{width:92px;height:92px}
+  .stamp .sv{font-size:23px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{
+  nav,header .hd-note,.disclaimer,button,.links,textarea,.hint{display:none!important}
+  body{background:#fff}
+  .panel{display:none!important}
+  .panel#p-report{display:block!important}
+  #p-report>section:first-child{display:none}
+  section{border:none;padding:0 0 12px;page-break-inside:avoid}
+  .gate,.alert,.verdict{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="hd-row">
+    <h1>决策终端<small>Decision Terminal v4.2.2 FINAL · Safety + Auto Data + AI Research · Fail Closed</small></h1>
+    <div class="hd-note">API 抓数字 · AI 做研究<br>缺数据 = 不允许下单</div>
+  </div>
+</header>
+
+<div class="disclaimer">
+  <b>V4 安全原则：Fail Closed。</b>关键数据缺失、过期、代码不一致、组合层未完成，最终报告都只能是「数据不完整 / 不执行」，绝不会给绿色买入。数字优先由行情 API 计算；AI 只做分类、商业逻辑、催化剂与证伪研究。<b>任何自动数据都必须显示 as-of 日期，下单前仍以券商实时报价复核。</b>
+</div>
+
+<div class="auto-box">
+  <div class="auto-title">自动数据中心 <span class="data-badge">V4.2 FINAL</span></div>
+  <div class="sub" style="margin:0">输入股票代码后，可自动抓取行情/均线/涨幅/结构、与持仓的真实历史相关性；第四步再由 SEC + AI 联网深研自动补基本面、林奇分类、板块、证伪条件与有来源的目标价。新 IPO / 亏损高成长股会切换到 SPEC 安全路径。抓不到的数据保持 UNKNOWN，不会偷偷使用默认值。</div>
+  <div class="grid" style="margin-top:10px">
+    <div class="f"><label>当前分析标的</label><input id="auto-tk" placeholder="NVDA" autocomplete="off"></div>
+    <div class="f"><label>数据日期</label><input id="auto-date" readonly placeholder="自动填入"></div>
+  </div>
+  <div class="auto-actions">
+    <button class="auto" onclick="fetchMarketAuto()">① 自动抓市场数据</button>
+    <button class="auto" onclick="fetchStockAuto()">② 自动抓个股数据</button>
+    <button class="auto" onclick="fetchPortfolioAuto()">③ 自动算持仓相关性</button>
+    <button class="auto" onclick="fetchAIResearchAuto()">④ SEC + AI 深研自动填写</button>
+  </div>
+  <div id="auto-status" class="auto-status">尚未抓取。完整自动版需要 <code>TWELVE_DATA_API_KEY</code>、<code>OPENAI_API_KEY</code>、<code>SEC_USER_AGENT</code>；<code>FRED_API_KEY</code> 为建议增强。</div>
+  <div id="ai-research-out"></div>
+</div>
+
+<nav>
+  <button class="on" onclick="tab('market',this)">① 市场</button>
+  <button onclick="tab('scan',this)">② 板块</button>
+  <button onclick="tab('intel',this)">③ 情报</button>
+  <button onclick="tab('deep',this)">④ 个股</button>
+  <button onclick="tab('port',this)">⑤ 组合</button>
+  <button onclick="tab('buy',this)">⑥ 买卖</button>
+  <button onclick="tab('sell',this)">⑦ 持仓</button>
+  <button onclick="tab('report',this)">⑧ 报告</button>
+</nav>
+<div id="p-market" class="panel on">
+
+<section>
+  <h2>第 0 层 · 今天允不允许开仓</h2>
+  <div class="sub">这一层不选股，只回答一个是非题：<b>今天该不该动手</b>。触及顶部共振或信用恶化时，个股筛得再好也该停手 —— 那时任何买点都会被大盘拖垮。<br>V4 把趋势、信用与 VIX 作为核心数据；AAII / Fear &amp; Greed / NAAIM 只做情绪调节，不再因两个同类情绪指标同时过热就直接把牛市判死。能自动抓的由数据中心填入，抓不到的再手工补。</div>
+
+  <h3>大势 · 权重最高</h3>
+  <div class="grid3">
+    <div class="f"><label>SPY 现价 <i>$</i></label><input id="m-spy" type="number" step="0.01" placeholder="612.40"></div>
+    <div class="f"><label>SPY 30 周 MA <i>≈150 日</i></label><input id="m-spyma" type="number" step="0.01" placeholder="588.00"></div>
+    <div class="f"><label>SPY 30 周 MA 方向</label>
+      <select id="m-spydir"><option value="">— UNKNOWN —</option><option value="up">向上</option><option value="flat">走平</option><option value="down">向下</option></select></div>
+  </div>
+
+  <h3>信用 · 一票否决</h3>
+  <div class="grid3">
+    <div class="f"><label>HYG 现价 <i>$</i></label><input id="m-hyg" type="number" step="0.01" placeholder="79.80"></div>
+    <div class="f"><label>HYG 50 周 MA</label><input id="m-hygma" type="number" step="0.01" placeholder="78.20"></div>
+    <div class="f"><label>SOFR vs 联邦基金上限</label>
+      <select id="m-sofr"><option value="">— UNKNOWN / 可选 —</option><option value="ok">正常</option><option value="tight">持续异常偏紧</option></select></div>
+  </div>
+  <div class="grid" style="margin-top:12px">
+    <div class="f"><label>HY OAS <i>% · FRED 自动</i></label><input id="m-oas" type="number" step="0.01" placeholder="3.25"></div>
+    <div class="f"><label>HY OAS 约20交易日变化 <i>bp</i></label><input id="m-oas20" type="number" step="0.1" placeholder="+25"></div>
+  </div>
+
+  <h3>情绪 · 钟摆两端</h3>
+  <div class="grid3">
+    <div class="f"><label>VIX</label><input id="m-vix" type="number" step="0.1" placeholder="16.5"></div>
+    <div class="f"><label>AAII 多头 <i>% · 选填</i></label><input id="m-aaii" type="number" step="0.1" placeholder="38"></div>
+    <div class="f"><label>CNN Fear &amp; Greed <i>· 选填</i></label><input id="m-fg" type="number" step="1" placeholder="52"></div>
+  </div>
+  <div class="grid3" style="margin-top:12px">
+    <div class="f"><label>NAAIM <i>选填</i></label><input id="m-naaim" type="number" step="1" placeholder="72"></div>
+    <div class="f"><label>USD/JPY <i>选填 · 仅观察，不用固定145否决</i></label><input id="m-jpy" type="number" step="0.1" placeholder="152"></div>
+    <div class="f"><label>取数日期 <i>· 必填</i></label><input id="m-date" placeholder="2026-08-29"></div>
+  </div>
+
+  <button class="act" onclick="runMarket()">判定今日开仓许可</button>
+</section>
+
+<div id="m-out"></div>
+
+<section>
+  <h2>数据源 · 3 分钟路线</h2>
+  <div class="links">
+    <a href="https://www.tradingview.com/chart/?symbol=SPY" target="_blank" rel="noopener"><div class="ln">SPY 与 HYG 均线 →</div><div class="ld">加 SMA(150) 当 30 周线、SMA(250) 当 50 周线，两个代码各看一次</div></a>
+    <a href="https://edition.cnn.com/markets/fear-and-greed" target="_blank" rel="noopener"><div class="ln">CNN Fear &amp; Greed →</div><div class="ld">首页大表盘，读中间那个数</div></a>
+    <a href="https://www.aaii.com/sentimentsurvey" target="_blank" rel="noopener"><div class="ln">AAII 散户情绪 →</div><div class="ld">每周四更新，读 Bullish 那一栏</div></a>
+    <a href="https://www.naaim.org/programs/naaim-exposure-index/" target="_blank" rel="noopener"><div class="ln">NAAIM 敞口指数 →</div><div class="ld">专业管理人实际仓位，每周三更新</div></a>
+    <a href="https://fred.stlouisfed.org/series/SOFR" target="_blank" rel="noopener"><div class="ln">FRED · SOFR →</div><div class="ld">和联邦基金利率上限比，差 15bp 以上且持续 = 流动性紧张</div></a>
+    <a href="https://www.cboe.com/tradable_products/vix/" target="_blank" rel="noopener"><div class="ln">VIX →</div><div class="ld">或直接在 TradingView 搜 VIX</div></a>
+  </div>
+  <div class="hint">建议固定在周末做一次，写在纸上。周中除非出现暴跌或暴涨，不必重跑 —— 频繁看情绪指标本身就是情绪化的表现。</div>
+</section>
+
+</div>
+<div id="p-scan" class="panel">
+
+<section>
+  <h2>第 0–3 层 · 机械淘汰</h2>
+  <div class="sub">漏斗的作用不是找出好股票，是<b>在 30 秒内砍掉一半名单</b>。下面三个链接把 V4.2 的机械筛选指标预设进 Finviz，点开就是筛好的结果。</div>
+
+  <h3>预设筛选器</h3>
+  <div class="links">
+    <a href="https://finviz.com/screener.ashx?v=111&f=cap_midover,geo_usa,sh_avgvol_o300,ta_highlow52w_b0to10h,ta_sma200_pa,ta_sma200_sb50,ta_sma50_pa,sh_relvol_o1.5&ft=4" target="_blank" rel="noopener">
+      <div class="ln">A1 突破池 →</div>
+      <div class="ld">价在 200 日线与 50 日线上方 · 50 日线在 200 日线上方 · 距 52 周高点 10% 内 · 相对成交量 &gt;1.5 倍</div>
+    </a>
+    <a href="https://finviz.com/screener.ashx?v=111&f=cap_midover,geo_usa,sh_avgvol_o300,ta_perf_26wup,ta_sma200_pa,ta_sma200_sb50,ta_sma20_pb&ft=4" target="_blank" rel="noopener">
+      <div class="ln">A2 回调池 →</div>
+      <div class="ld">长期趋势向上（26 周涨幅为正、价在 200 日线上）但已跌破 20 日线 = 正在回调，等企稳</div>
+    </a>
+    <a href="https://finviz.com/screener.ashx?v=111&f=cap_midover,geo_usa,sh_avgvol_o300,sh_opt_option,ta_sma200_pa,ta_sma200_sb50,ta_sma50_pa&ft=4" target="_blank" rel="noopener">
+      <div class="ln">Wheel 期权池 →</div>
+      <div class="ld">有期权链 · 趋势向上。选出后还要自己确认股价 &lt;$100、TTM EPS 为正、IV Rank &gt;20</div>
+    </a>
+    <a href="https://stockcharts.com/freecharts/rrg/" target="_blank" rel="noopener">
+      <div class="ln">板块 RRG →</div>
+      <div class="ld">每月跑一次，记下排名前 3 的板块。后 3 名板块的个股一律不看</div>
+    </a>
+  </div>
+  <div class="hint">⚠️ Finviz 偶尔调整参数命名。若链接打开显示"无结果"或报错，把地址栏 <code>f=</code> 后面最末一个条件删掉再试，或直接在 Finviz 界面里手动勾选同名条件。</div>
+</section>
+
+<section>
+  <h2>本月板块 Top 3</h2>
+  <div class="sub">填在这里只有一个用途：<b>逼你在选股之前先确认板块顺风</b>。Layer 4 裁决 6——空缺板块不是买入理由。</div>
+  <div class="grid3">
+    <div class="f"><label>第 1 名</label><input id="sc-s1" placeholder="如 XLK"></div>
+    <div class="f"><label>第 2 名</label><input id="sc-s2" placeholder="如 XLV"></div>
+    <div class="f"><label>第 3 名</label><input id="sc-s3" placeholder="如 XLE"></div>
+  </div>
+  <div class="grid" style="margin-top:12px">
+    <div class="f"><label>后 3 名（黑名单）</label><input id="sc-bad" placeholder="如 XLRE / XLU / XLP"></div>
+    <div class="f"><label>更新日期 <i>· 必填</i></label><input id="sc-date" placeholder="2026-08-29"></div>
+  </div>
+</section>
+
+<section>
+  <h2>粗筛自查表</h2>
+  <div class="sub">对每一只候选逐条打勾。任一条不过即淘汰，不解释、不例外。</div>
+  <table>
+    <thead><tr><th style="width:34px">#</th><th>指标</th><th style="width:110px">门槛</th><th>在哪看</th></tr></thead>
+    <tbody>
+      <tr><td class="n">0</td><td>月线 / 200 日线方向</td><td class="n">向上</td><td>StockCharts 月线图，肉眼看斜率</td></tr>
+      <tr><td class="n">1</td><td>TTM EPS（实际报出）</td><td class="n">&gt; 0</td><td>StockAnalysis · 不看 Forward</td></tr>
+      <tr><td class="n">2</td><td>60 自然日涨幅</td><td class="n">&lt; 30%</td><td>Finviz Perf 3M 近似</td></tr>
+      <tr><td class="n">3</td><td>距 30 周 MA 距离</td><td class="n">≤ 15%</td><td>TradingView 加 150 日 SMA</td></tr>
+      <tr><td class="n">4</td><td>距 52 周低点</td><td class="n">&gt; 20%</td><td>Finviz 52W Range</td></tr>
+    </tbody>
+  </table>
+  <div class="hint">30 周 MA ≈ 150 日 SMA。TradingView 免费版直接加一条 SMA(150) 即可，不必换周线。</div>
+</section>
+
+</div>
+<div id="p-intel" class="panel">
+
+<section>
+  <h2>内部人买入 · 唯一有实证支持的"提前"信号</h2>
+  <div class="sub">先说清楚定位：<b>内部人开放市场买入是真信号</b>，学术研究反复验证过集群买入的超额收益。但它<b>不是</b>买点 —— 它是把一只股票放进候选池的理由，之后仍要走完五层漏斗。<br>关键区分：<b>P（开放市场买入）</b>才算数；<b>M / A（期权行权、赠予）</b>不算，那是薪酬不是判断。</div>
+
+  <h3>每周扫一次</h3>
+  <div class="links">
+    <a href="http://openinsider.com/latest-cluster-buys" target="_blank" rel="noopener"><div class="ln">集群买入 →</div><div class="ld">多名内部人同期买入，信号强度最高的一类</div></a>
+    <a href="http://openinsider.com/latest-insider-purchases-25k" target="_blank" rel="noopener"><div class="ln">$25k 以上买入 →</div><div class="ld">过滤掉象征性小额，只看真金白银</div></a>
+    <a href="http://openinsider.com/top-insider-purchases-of-the-week" target="_blank" rel="noopener"><div class="ln">本周最大买入 →</div><div class="ld">按金额排序，一眼看完</div></a>
+    <a href="http://openinsider.com/screener" target="_blank" rel="noopener"><div class="ln">自定义筛选器 →</div><div class="ld">可加市值、行业、金额、职务多重条件</div></a>
+  </div>
+
+  <h3>内部人信号强度评分</h3>
+  <div class="sub" style="margin-bottom:12px">在 OpenInsider 查到某只股票之后，把数字填进来。</div>
+  <div class="grid3">
+    <div class="f"><label>代码</label><input id="i-tk" placeholder="INTC" autocomplete="off"></div>
+    <div class="f"><label>近 90 天买入人数</label><input id="i-n" type="number" step="1" placeholder="4"></div>
+    <div class="f"><label>买入总金额 <i>$</i></label><input id="i-amt" type="number" step="1000" placeholder="850000"></div>
+  </div>
+  <div class="grid3" style="margin-top:12px">
+    <div class="f"><label>是否含 CEO / CFO</label>
+      <select id="i-ceo"><option value="no">否</option><option value="yes">是</option></select></div>
+    <div class="f"><label>交易类型</label>
+      <select id="i-type"><option value="P">P · 开放市场买入</option><option value="M">M / A · 期权行权或赠予</option><option value="mix">两者混合</option></select></div>
+    <div class="f"><label>同期是否有内部人卖出</label>
+      <select id="i-sell"><option value="no">无</option><option value="some">有少量</option><option value="heavy">卖出金额更大</option></select></div>
+  </div>
+  <div class="grid" style="margin-top:12px">
+    <div class="f"><label>内部人平均买入价 <i>$</i></label><input id="i-bp" type="number" step="0.01" placeholder="32.50"></div>
+    <div class="f"><label>当前股价 <i>$</i></label><input id="i-px" type="number" step="0.01" placeholder="38.50"></div>
+  </div>
+  <button class="act" onclick="runIntel()">评估信号强度</button>
+  <div id="i-out"></div>
+</section>
+
+<section>
+  <h2>X / Reddit 热度 · 定位必须反过来</h2>
+  <div class="sub">你想用它"比别人更早发现"，但社交热度在结构上做不到这件事 —— 等你在 Reddit 上看到某只股票被刷屏，那已经是**最后一批人**在接盘。散户一致看多是你自己框架里的顶部信号（AAII &gt;55%），Reddit 热度是同一个东西的个股版。<br><b>所以这里把它反过来用：热度不是买入理由，是三件事的探测器</b> —— ① 过热警示 ② 证伪线索来源 ③ 卖 covered call 的时机。</div>
+
+  <div class="links">
+    <a href="https://apewisdom.io/wallstreetbets/" target="_blank" rel="noopener"><div class="ln">ApeWisdom · WSB →</div><div class="ld">提及量排名 + 24 小时变化，免费无需注册</div></a>
+    <a href="https://apewisdom.io/stocks/" target="_blank" rel="noopener"><div class="ln">ApeWisdom · r/stocks →</div><div class="ld">比 WSB 理性一些的版本，噪音略少</div></a>
+    <a href="https://stocktwits.com/" target="_blank" rel="noopener"><div class="ln">StockTwits →</div><div class="ld">搜代码看多空比与消息流</div></a>
+    <a href="https://www.reddit.com/r/wallstreetbets/" target="_blank" rel="noopener"><div class="ln">r/wallstreetbets →</div><div class="ld">读<b>反方帖</b>，不读看涨帖 —— 找证伪线索</div></a>
+  </div>
+
+  <h3>热度过热检测</h3>
+  <div class="grid3">
+    <div class="f"><label>代码</label><input id="i-htk" placeholder="NVDA" autocomplete="off"></div>
+    <div class="f"><label>当前提及量 <i>ApeWisdom</i></label><input id="i-m1" type="number" step="1" placeholder="420"></div>
+    <div class="f"><label>24 小时前提及量</label><input id="i-m0" type="number" step="1" placeholder="95"></div>
+    <div class="f"><label>近 30 日股价涨幅 <i>%</i></label><input id="i-r30" type="number" step="0.1" placeholder="45"></div>
+  </div>
+  <button class="act" onclick="runHype()">检测热度</button>
+  <div id="i-hout"></div>
+</section>
+
+</div>
+<div id="p-deep" class="panel">
+
+<section>
+  <h2>Step 0 · 先分类，再分析</h2>
+  <div class="sub">林奇六类。<b>分类错了，后面所有指标都会读反</b>——用低 PE 判断周期股，是散户在周期顶部接刀的标准死法。</div>
+  <div class="grid">
+    <div class="f"><label>代码</label><input id="d-tk" placeholder="INTC" oninput="buildLinks()" autocomplete="off"></div>
+    <div class="f"><label>林奇分类</label>
+      <select id="d-type" onchange="showChecklist()">
+        <option value="">— 请选择 —</option>
+        <option value="slow">缓慢增长型</option>
+        <option value="stalwart">稳定增长型（GOOGL、COST）</option>
+        <option value="fast">快速增长型（PLTR）</option>
+        <option value="cyclical">周期型（MU、NUE）</option>
+        <option value="turn">困境反转型（INTC）</option>
+        <option value="asset">资产型</option>
+        <option value="spec">亏损投机型（SPCX、ONDS）</option>
+      </select></div>
+  </div>
+  <div id="d-check"></div>
+</section>
+
+<section>
+  <h2>数据源直达</h2>
+  <div class="sub">填了代码之后，下面的链接会自动指向这只股票。80% 的精力应该花在这几个页面上，不是在看 K 线。</div>
+  <div id="d-links"><div class="empty">先在上面填入代码</div></div>
+</section>
+
+<section>
+  <h2>AI 深研与人工复核</h2>
+  <div class="sub">V4.2 可以通过 Netlify 后端调用 SEC EDGAR + OpenAI 联网研究。AI 会自动填写可核实的基本面字段，但<b>不会把无法验证的内容伪装成事实</b>；每次研究都会显示来源。下面仍保留提示词生成器，作为 AI API 不可用时的备用路径。</div>
+
+  <div class="grid">
+    <div class="f"><label>现价 <i>$</i></label><input id="d-px" type="number" step="0.01" placeholder="38.50"></div>
+    <div class="f"><label>30 周 MA</label><input id="d-ma" type="number" step="0.01" placeholder="35.20"></div>
+    <div class="f"><label>TTM PE <i>实际报出，非 Forward</i></label><input id="d-pe" placeholder="负 / 32"></div>
+    <div class="f"><label>60 日涨幅 <i>%</i></label><input id="d-p60" type="number" step="0.1" placeholder="18"></div>
+  </div>
+  <div class="f" style="margin-top:12px">
+    <label>你目前的看法 <i>· 让 Claude 有靶子可打</i></label>
+    <textarea id="d-view" rows="2" placeholder="我倾向于认为 18A 良率改善会在 Q4 兑现，但不确定客户订单是否真实"></textarea>
+  </div>
+
+  <button class="act" onclick="buildPrompt()">生成提示词</button>
+  <textarea class="copybox" id="d-prompt" readonly placeholder="按上面的按钮，提示词会出现在这里"></textarea>
+  <button class="mini" style="margin-top:10px" onclick="copyBox('d-prompt',this)">复制到剪贴板</button>
+</section>
+
+</div>
+<div id="p-port" class="panel">
+
+<section>
+  <h2>第 3 层 · 我能放多少</h2>
+  <div class="sub">这一层最常被跳过，代价也最大：四只相关性 0.8 的股票各自单独通过全部检验，你以为分散了，实际是同一个赌注押了四倍。<br><b>先算能放多少，再去买点闸门算怎么买。</b>顺序反了，闸门会给你一个仓位数字，然后你才发现放不下。</div>
+
+  <div class="grid3">
+    <div class="f"><label>候选代码</label><input id="c-tk" placeholder="MU" autocomplete="off"></div>
+    <div class="f"><label>拟投入金额 <i>$</i></label><input id="c-amt" type="number" step="100" placeholder="12000"></div>
+    <div class="f"><label>所属板块</label><input id="c-sec" placeholder="半导体"></div>
+  </div>
+  <div class="grid3" style="margin-top:12px">
+    <div class="f"><label>账户总值 <i>$</i></label><input id="c-acct" type="number" step="1000" value="108000"></div>
+    <div class="f"><label>当前现金 <i>$ · 必填</i></label><input id="c-cash" type="number" step="1000" placeholder="25000"></div>
+    <div class="f"><label>数据日期 <i>· 必填</i></label><input id="c-date" placeholder="2026-08-29"></div>
+  </div>
+  <label class="chk"><input type="checkbox" id="c-sector-ok"> 已人工确认：加入候选后，该板块总敞口 ≤ 35%</label>
+
+  <h3>与现有持仓的相关性</h3>
+  <div class="sub" style="margin-bottom:12px">优先按「自动算持仓相关性」填入 120 日收益相关系数；只有 API 不可用时才允许人工估计。UNKNOWN 不能通过组合层。</div>
+  <div id="c-rows"></div>
+
+  <button class="act" onclick="runPort()">计算可放仓位</button>
+</section>
+
+<div id="c-out"></div>
+
+<section>
+  <h2>三条常被忽略的算术</h2>
+  <table>
+    <thead><tr><th>规则</th><th>数字</th><th>为什么</th></tr></thead>
+    <tbody>
+      <tr><td>真分散门槛</td><td class="n">相关性 &lt; 0.5</td><td>0.5–0.7 是半重叠，仓位减半；&gt;0.7 是加仓，必须明说</td></tr>
+      <tr><td>风险贡献</td><td class="n">仓位 × 波动率</td><td>不再规定「低于5%没意义」；小仓位可以是正确的，关键看风险贡献而不是仓位百分比</td></tr>
+      <tr><td>单仓上限</td><td class="n">≤ 20% 账户</td><td>包含正股 + 卖 put 的名义敞口，不是只算正股</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</div>
+<div id="p-buy" class="panel">
+
+<section>
+  <h2>买点闸门 · 六道门，缺一不买</h2>
+  <div class="sub">填完按钮一按，工具会从第 0 道门开始跑。<b>任何一道门关上，后面的门自动锁死</b>——因为它们已经没有意义了。这正是你的框架要的效果：一票否决，不是打分。</div>
+
+  <h3>基础</h3>
+  <div class="grid3">
+    <div class="f"><label>代码</label><input id="b-tk" placeholder="INTC" autocomplete="off"></div>
+    <div class="f"><label>现价 <i>$</i></label><input id="b-px" type="number" step="0.01" placeholder="38.50"></div>
+    <div class="f"><label>取价日期 <i>· 必填</i></label><input id="b-dt" placeholder="2026-08-29"></div>
+    <div class="f"><label>所属板块 ETF <i>· 如 XLK / XLI</i></label><input id="b-secetf" placeholder="XLK"></div>
+    <div class="f"><label>历史交易日 <i>· 自动</i></label><input id="b-history-days" type="number" readonly placeholder="自动填入"></div>
+    <div class="f"><label>趋势均线类型 <i>· 自动</i></label><input id="b-ma-kind" readonly placeholder="150日 / 新IPO用50日"></div>
+  </div>
+
+  <h3>第 0 道门 · 资格（月线准入）</h3>
+  <div class="grid">
+    <div class="f"><label>月线 / 200 日线方向</label>
+      <select id="b-mdir"><option value="">— UNKNOWN —</option><option value="up">向上</option><option value="flat">走平</option><option value="down">向下</option></select></div>
+    <div class="f"><label>TTM EPS（实际报出）</label>
+      <select id="b-eps"><option value="">— UNKNOWN —</option><option value="pos">为正</option><option value="neg">为负 / 亏损</option></select></div>
+  </div>
+
+  <div id="spec-fields" style="display:none;border:1px solid var(--rule2);background:#FDFAF2;padding:14px;margin-top:14px">
+    <h3 style="margin-top:0">SPEC 引擎 · 新 IPO / 亏损高成长股</h3>
+    <div class="sub">只有「④ 个股」分类为亏损投机型时启用。SPEC 不因 EPS&lt;0 自动淘汰，但用更严格的现金跑道、稀释、解禁与仓位上限控制尾部风险。</div>
+    <div class="grid3">
+      <div class="f"><label>现金跑道 <i>月</i></label><input id="b-spec-runway" type="number" step="0.1" placeholder="18"></div>
+      <div class="f"><label>近12月稀释 <i>%</i></label><input id="b-spec-dilution" type="number" step="0.1" placeholder="12"></div>
+      <div class="f"><label>距下一次已知解禁 <i>天 · 无则留空</i></label><input id="b-spec-unlock" type="number" step="1" placeholder="45"></div>
+      <div class="f"><label>营收增长 <i>% · 可得则填</i></label><input id="b-spec-revgrowth" type="number" step="0.1" placeholder="60"></div>
+      <div class="f"><label>未来12月融资风险</label><select id="b-spec-funding"><option value="">— UNKNOWN —</option><option value="no">低 / 暂无明显融资需求</option><option value="yes">高 / 很可能需要融资</option></select></div>
+      <div class="f"><label>SPEC 备注</label><input id="b-spec-note" placeholder="订单、产能、锁定期、ATM 等"></div>
+    </div>
+    <div class="hint">硬安全线：跑道&lt;9个月 = STOP；9–18个月 = WAIT；近12月稀释&gt;50% = STOP；25–50% = WAIT；30天内已知大规模解禁 = WAIT。SPEC 单仓上限 10%，单笔风险上限 1%。</div>
+  </div>
+
+  <h3>第 1 道门 · 阶段 / 趋势结构</h3>
+  <div class="grid">
+    <div class="f"><label>30 周 MA 数值 <i>≈150 日 SMA</i></label><input id="b-ma" type="number" step="0.01" placeholder="35.20"></div>
+    <div class="f"><label>30 周 MA 方向</label>
+      <select id="b-madir"><option value="">— UNKNOWN —</option><option value="up">向上</option><option value="flat">走平</option><option value="down">向下</option></select></div>
+  </div>
+
+  <h3>第 2 道门 · 粗筛 + 情绪偏离</h3>
+  <div class="grid">
+    <div class="f"><label>60 日涨幅 <i>%</i></label><input id="b-p60" type="number" step="0.1" placeholder="18"></div>
+    <div class="f"><label>距 52 周低点 <i>%</i></label><input id="b-l52" type="number" step="0.1" placeholder="45"></div>
+  </div>
+
+  <h3>第 3 道门 · 买点归属（A1 或 A2）</h3>
+  <div class="grid">
+    <div class="f"><label>突破发生在几周前 <i>无突破留空</i></label><input id="b-bw" type="number" step="1" placeholder="3"></div>
+    <div class="f"><label>突破当周量能 <i>÷ 20 周均量</i></label><input id="b-bv" type="number" step="0.1" placeholder="1.8"></div>
+    <div class="f"><label>突破点价格 <i>$ · A1 止损参照</i></label><input id="b-bp" type="number" step="0.01" placeholder="36.00"></div>
+    <div class="f"><label>已在 Stage 2 多少周</label><input id="b-s2w" type="number" step="1" placeholder="14"></div>
+    <div class="f"><label>回调时的量能</label>
+      <select id="b-pv"><option value="">— UNKNOWN —</option><option value="na">不适用 / 未回调</option><option value="shrink">缩量回调</option><option value="expand">放量下跌</option></select></div>
+    <div class="f"><label>企稳信号</label>
+      <select id="b-st"><option value="">— UNKNOWN —</option><option value="no">尚未出现</option><option value="yes">已出现（2 根不创新低 / 反包 / 锤子 + 放量）</option></select></div>
+  </div>
+
+  <h3>第 4 道门 · R 值与仓位</h3>
+  <div class="grid">
+    <div class="f"><label>目标价 <i>$</i></label><input id="b-tg" type="number" step="0.01" placeholder="52.00"></div>
+    <div class="f"><label>目标价来源</label>
+      <select id="b-ts"><option value="">— UNKNOWN —</option><option value="tech">R(技) 箱体高度投射</option><option value="sell">R(卖) 分析师均值</option><option value="val">R(估) PE 回归中位数</option></select></div>
+    <div class="f"><label>第二来源方向</label>
+      <select id="b-ts2"><option value="">— UNKNOWN —</option><option value="none">只有一个来源</option><option value="same">两个来源方向一致</option><option value="opp">两个来源方向相反</option></select></div>
+    <div class="f"><label>账户规模 <i>$</i></label><input id="b-acct" type="number" step="1000" value="108000"></div>
+    <div class="f"><label>单笔风险 <i>% · 范·撒普 1–2%</i></label><input id="b-risk" type="number" step="0.1" value="1"></div>
+    <div class="f"><label>与现有持仓相关性 <i>估计值</i></label>
+      <select id="b-cor"><option value="">— UNKNOWN —</option><option value="low">&lt; 0.5 真分散</option><option value="mid">0.5–0.7 半重叠</option><option value="high">&gt; 0.7 这是加仓</option></select></div>
+  </div>
+
+  <h3>第 5 道门 · 基本面陈述（写不出 = 不买）</h3>
+  <div class="f">
+    <label>把这句话补完整，不许写"板块在涨""资金流入""市场看好 AI"</label>
+    <textarea id="b-th" rows="4" placeholder="这条均线在上升，是因为 ____（具体商业事实：订单、产能、定价权、监管变化、周期位置）。这个原因预计还能持续 ____ 个季度，理由是 ____。"></textarea>
+  </div>
+  <div class="f" style="margin-top:12px">
+    <label>逻辑证伪条件 <i>· 什么事发生了我就认错离场</i></label>
+    <input id="b-inv" placeholder="如：Q3 毛利率低于 38% / 18A 客户流片延期">
+  </div>
+
+  <button class="act" onclick="runGates()">开始跑闸门</button>
+</section>
+
+<div id="b-out"></div>
+
+</div>
+<div id="p-sell" class="panel">
+
+<section>
+  <h2>卖点监控 · 四类触发</h2>
+  <div class="sub">买入规则错了，损失有限；卖出规则错了，损失无限。这一页的四类触发是<b>硬规则</b>，触发即执行，不重新评估、不"再等等"。持仓已按 Layer 2 预填，价格栏必须你自己从 moomoo 抄进去。</div>
+
+  <div class="grid" style="margin-bottom:16px">
+    <div class="f"><label>账户总值 <i>$ · 含现金</i></label><input id="s-acct" type="number" step="1000" value="108000"></div>
+    <div class="f"><label>取价日期 <i>· 必填</i></label><input id="s-date" placeholder="2026-08-29"></div>
+  </div>
+
+  <div id="s-rows"></div>
+  <button class="mini" onclick="addRow()">+ 增加一行持仓</button>
+  <button class="act" onclick="runSell()">检查所有触发条件</button>
+</section>
+
+<div id="s-out"></div>
+
+<section>
+  <h2>四类卖出的分工</h2>
+  <div class="sub">记住哪一类管什么，比记住具体数字重要。</div>
+  <table>
+    <thead><tr><th style="width:78px">类型</th><th>触发</th><th style="width:120px">动作</th></tr></thead>
+    <tbody>
+      <tr><td><b>保命卖</b></td><td>跌破<b>入场前就写死</b>的止损价</td><td class="n">无条件清仓</td></tr>
+      <tr><td><b>趋势卖</b></td><td>周线收盘跌破 30 周 MA <b>且</b> MA 转向下</td><td class="n">减至半仓或清仓</td></tr>
+      <tr><td></td><td>月线 MA 转向下</td><td class="n">只减不加</td></tr>
+      <tr><td></td><td>单一标的浮亏 &gt; 25%</td><td class="n">重走七步，二选一</td></tr>
+      <tr><td></td><td>所属板块 ETF 跌破自身 30 周 MA</td><td class="n">该板块全部降级</td></tr>
+      <tr><td><b>逻辑卖</b></td><td>买入时的核心理由被证伪</td><td class="n">与价格无关，立即减</td></tr>
+      <tr><td><b>高浮盈</b></td><td>单一持仓浮盈 &gt; 20%</td><td class="n">检查风险贡献，不自动止盈</td></tr>
+    </tbody>
+  </table>
+  <div class="hint">V4 不再把 +20% 当机械止盈线。大赢家可能贡献组合的大部分长期收益；高浮盈只触发风险复核，真正卖出仍看趋势失效、基本面证伪和组合集中度。</div>
+</section>
+
+</div>
+<div id="p-report" class="panel">
+
+<section>
+  <h2>完整分析报告</h2>
+  <div class="sub">把前面各层已经跑出的结果<b>合并判定</b>，并做一件单独任何一层都做不到的事：<b>跨层否决</b>。<br>市场红灯 + 个股闸门全过 = 最终仍是「不买」。两个模块各自独立时看不出这一点，合起来才看得出。</div>
+
+  <div class="grid">
+    <div class="f"><label>报告标的 <i>· 留空则用买卖计划页的代码</i></label><input id="r-tk" placeholder="INTC"></div>
+    <div class="f"><label>报告日期</label><input id="r-date" placeholder="2026-08-29"></div>
+  </div>
+
+  <button class="act" onclick="buildReport()">生成完整报告</button>
+  <div class="hint">生成前请先把要用的层跑一遍（至少 ①市场 和 ⑥买卖计划）。没跑过的层会在报告里标成「未执行」，而不是被静默跳过 —— 报告必须诚实反映哪些功课没做。</div>
+</section>
+
+<div id="r-out"></div>
+
+</div>
+
+</div>
+<script>
+/* ═══════════════ 通用 ═══════════════ */
+function tab(name, el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('on'));
+  document.getElementById('p-'+name).classList.add('on');
+  if(name==='port'){ syncRows(); drawCorr(true); }
+  el.classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function num(id){ var el=document.getElementById(id); if(!el) return null; var v=parseFloat(el.value); return isNaN(v)?null:v; }
+function val(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
+function setv(id,v){ var el=document.getElementById(id); if(el && v!==undefined && v!==null && v!=='') el.value=v; }
+function clearv(id){ var el=document.getElementById(id); if(el) el.value=''; }
+function resetForTicker(tk){
+  var old=val('b-tk').toUpperCase();
+  var tech=['b-bw','b-bv','b-bp','b-s2w','b-pv']; tech.forEach(clearv);
+  if(old&&old!==tk){
+    ['d-type','d-pe','d-view','b-eps','b-secetf','b-st','b-tg','b-ts','b-ts2','b-th','b-inv','b-spec-runway','b-spec-dilution','b-spec-unlock','b-spec-revgrowth','b-spec-funding','b-spec-note','c-sec'].forEach(clearv);
+    LAST.gates=null;LAST.port=null;LAST.intel=null;LAST.hype=null;
+    var ai=document.getElementById('ai-research-out');if(ai)ai.innerHTML='';
+    showChecklist();
+  }
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function f1(x){ return (Math.round(x*10)/10).toFixed(1); }
+function f2(x){ return (Math.round(x*100)/100).toFixed(2); }
+function positive(x){ return typeof x==='number' && isFinite(x) && x>0; }
+function isoToday(){ return new Date().toISOString().slice(0,10); }
+function ageDays(s){ if(!/^\d{4}-\d{2}-\d{2}$/.test(s||'')) return 9999; var d=new Date(s+'T00:00:00Z'); return Math.floor((Date.now()-d.getTime())/86400000); }
+function fresh(s,maxDays){ var a=ageDays(s); return a>=0 && a<=maxDays; }
+function makeAnalysisId(tk,dt){ return (tk||'NA').toUpperCase()+'-'+(dt||isoToday())+'-V4.2'; }
+function autoStatus(msg,cls){ var e=document.getElementById('auto-status'); if(e){e.className='auto-status '+(cls||'');e.innerHTML=msg;} }
+const RULES={maxSinglePct:20,maxSectorPct:35,minCashPct:10,maxRiskPct:2,minR:2,stockFreshDays:4,marketFreshDays:4,sectorFreshDays:40,corrMid:0.5,corrHigh:0.7};
+
+async function apiGet(path){
+  var r=await fetch(path,{headers:{'accept':'application/json'}}); var j=await r.json().catch(function(){return {}});
+  if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j;
+}
+async function fetchMarketAuto(){
+  autoStatus('正在抓取市场数据…','wait');
+  try{
+    var d=await apiGet('/.netlify/functions/market-data');
+    setv('m-spy',d.spy&&d.spy.price); setv('m-spyma',d.spy&&d.spy.sma150); setv('m-spydir',d.spy&&d.spy.direction);
+    setv('m-hyg',d.hyg&&d.hyg.price); setv('m-hygma',d.hyg&&d.hyg.sma250); setv('m-vix',d.vix&&d.vix.price);
+    setv('m-oas',d.hyOas&&d.hyOas.value); setv('m-oas20',d.hyOas&&d.hyOas.change20Bp);
+    setv('m-jpy',d.usdjpy&&d.usdjpy.price); setv('m-date',d.asOf); setv('auto-date',d.asOf);
+    if(d.sofrState) setv('m-sofr',d.sofrState);
+    autoStatus('市场数据已填入：'+esc(d.asOf||'日期未知')+'。'+esc(d.note||'下单前仍需券商复核。'),'ok');
+  }catch(e){ autoStatus('自动抓市场失败：'+esc(e.message)+'。页面保持 UNKNOWN，请不要用默认值代替。','bad'); }
+}
+async function fetchStockAuto(){
+  var tk=val('auto-tk').toUpperCase(); if(!tk){autoStatus('请先输入股票代码。','bad');return;}
+  resetForTicker(tk);
+  autoStatus('正在抓取 '+esc(tk)+' 行情并计算技术数据…','wait');
+  try{
+    var d=await apiGet('/.netlify/functions/stock-data?symbol='+encodeURIComponent(tk));
+    var young=!!d.isYoungIssue, ma=young?(d.sma50||d.sma20):d.sma150, md=young?(d.direction50||d.direction20):d.direction150, longDir=young?(d.direction50||d.direction20):d.direction200;
+    setv('d-tk',tk); setv('d-px',d.price); setv('d-ma',ma); setv('d-p60',d.return60d);
+    setv('b-tk',tk); setv('b-px',d.price); setv('b-ma',ma); setv('b-p60',d.return60d); setv('b-l52',d.distance52wLow);
+    setv('b-history-days',d.historyRows); setv('b-ma-kind',young?'50日趋势代理（新股）':'150日 ≈ 30周MA');
+    setv('b-dt',d.asOf); setv('auto-date',d.asOf); setv('i-tk',tk); setv('i-htk',tk); setv('i-px',d.price); setv('c-tk',tk); setv('c-date',d.asOf);
+    if(md)setv('b-madir',md); if(longDir)setv('b-mdir',longDir);
+    if(d.breakout){ setv('b-bw',d.breakout.weeksAgo); setv('b-bv',d.breakout.volumeRatio); setv('b-bp',d.breakout.price); }
+    var weeks=young?d.trend50Weeks:d.stage2Weeks; if(weeks!==null&&weeks!==undefined)setv('b-s2w',weeks);
+    if(d.pullbackVolume==='shrink') setv('b-pv','shrink'); else if(d.pullbackVolume==='expand') setv('b-pv','expand');
+    autoStatus(esc(tk)+' 行情已填入（'+esc(d.asOf||'')+'）。'+(young?'该标的历史不足150日，已标记为新股：只有分类为 SPEC 时才允许使用50日趋势代理。':'使用150/200日长期趋势。')+' 下一步建议点 ④ SEC + AI 深研。','ok');
+    if(typeof buildLinks==='function') buildLinks();
+  }catch(e){ autoStatus('自动抓个股失败：'+esc(e.message)+'。不要根据空白字段下单。','bad'); }
+}
+async function fetchPortfolioAuto(){
+  syncRows(); var tk=val('auto-tk').toUpperCase()||val('c-tk').toUpperCase()||val('b-tk').toUpperCase();
+  if(!tk){autoStatus('请先输入候选股票代码。','bad');return;}
+  var hs=HOLD.filter(function(h){return h.t&&parseFloat(h.s)>0;}).map(function(h){return h.t.toUpperCase();});
+  if(!hs.length){autoStatus('持仓列表为空，先在「⑦ 持仓」填写。','bad');return;}
+  autoStatus('正在抓持仓现价/趋势并计算 '+esc(tk)+' 与 '+hs.length+' 个持仓的历史收益相关性…','wait');
+  try{
+    var d=await apiGet('/.netlify/functions/stock-data?symbol='+encodeURIComponent(tk)+'&holdings='+encodeURIComponent(hs.join(',')));
+    var maxC=null;
+    for(var i=0;i<HOLD.length;i++){
+      var sym=(HOLD[i].t||'').toUpperCase(); var x=d.correlations&&d.correlations[sym];
+      if(x){
+        HOLD[i].p=x.price||''; HOLD[i].m=x.sma150||x.sma50||''; HOLD[i].md=x.direction150||x.direction50||''; HOLD[i].mo=x.direction200||x.direction50||'';
+        var c=x.corr120; if(c!==null&&c!==undefined){maxC=maxC===null?c:Math.max(maxC,c);}
+      }
+    }
+    drawRows(); drawCorr(false);
+    for(var j=0;j<HOLD.length;j++){
+      var sym2=(HOLD[j].t||'').toUpperCase(), x2=d.correlations&&d.correlations[sym2], e=document.getElementById('c-cor-'+j);
+      if(x2&&e){var c2=x2.corr120;e.value=(c2===null||c2===undefined)?'':(c2>=RULES.corrHigh?'0.8':c2>=RULES.corrMid?'0.6':'0.3');e.dataset.actual=(c2===null||c2===undefined)?'':String(c2);}
+    }
+    drawCorr(true);
+    if(maxC!==null)setv('b-cor',maxC>=RULES.corrHigh?'high':maxC>=RULES.corrMid?'mid':'low');
+    setv('c-date',d.asOf); setv('s-date',d.asOf); autoStatus('持仓现价、趋势与相关性已自动更新。你仍需保留/补录每只持仓原先写死的入场止损，因为系统不能事后替你发明止损。','ok');
+  }catch(e){ autoStatus('相关性/持仓数据抓取失败：'+esc(e.message)+'。组合层保持 UNKNOWN，不能自动放行。','bad'); }
+}
+
+async function fetchAIResearchAuto(){
+  var tk=val('auto-tk').toUpperCase()||val('d-tk').toUpperCase()||val('b-tk').toUpperCase();
+  if(!tk){autoStatus('请先输入股票代码。','bad');return;}
+  autoStatus('正在读取 SEC 并让 AI 联网深研 '+esc(tk)+'… 研究较行情抓取更慢，请保持页面打开。','wait');
+  var box=document.getElementById('ai-research-out'); if(box)box.innerHTML='';
+  try{
+    var r=await fetch('/.netlify/functions/ai-research',{method:'POST',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify({symbol:tk,price:num('b-px')||num('d-px'),sma:num('b-ma')||num('d-ma'),return60d:num('b-p60')||num('d-p60'),userView:val('d-view')})});
+    var d=await r.json().catch(function(){return {}}); if(!r.ok)throw new Error(d.error||('HTTP '+r.status));
+    var a=d.ai, sec=d.sec;
+    if(a){['d-pe','b-eps','b-secetf','b-tg','b-ts','b-ts2','b-th','b-inv','b-spec-runway','b-spec-dilution','b-spec-unlock','b-spec-revgrowth','b-spec-funding','b-spec-note'].forEach(clearv);}
+    if(sec&&sec.ttmDilutedEpsApprox&&(!a||a.ttmEps===null||a.ttmEps===undefined)){
+      var se=sec.ttmDilutedEpsApprox.value; if(Number.isFinite(se))setv('b-eps',se>=0?'pos':'neg');
+    }
+    if(a){
+      setv('d-tk',tk); setv('b-tk',tk); setv('c-tk',tk); setv('i-tk',tk); setv('i-htk',tk);
+      if(a.lynchType){setv('d-type',a.lynchType);showChecklist();}
+      if(a.sectorEtf){setv('b-secetf',a.sectorEtf);setv('c-sec',a.sectorName||a.sectorEtf);}
+      if(a.epsStatus&&a.epsStatus!=='unknown')setv('b-eps',a.epsStatus);
+      if(Number.isFinite(a.peTtm))setv('d-pe',f2(a.peTtm));
+      if(a.thesis)setv('b-th',a.thesis); if(a.invalidation)setv('b-inv',a.invalidation);
+      if(Number.isFinite(a.targetPrice)){setv('b-tg',f2(a.targetPrice));if(a.targetSource)setv('b-ts',a.targetSource);if(a.secondSource)setv('b-ts2',a.secondSource);}
+      if(a.lynchType==='spec'&&a.spec){if(Number.isFinite(a.spec.cashRunwayMonths))setv('b-spec-runway',a.spec.cashRunwayMonths);if(Number.isFinite(a.spec.dilution12mPct))setv('b-spec-dilution',a.spec.dilution12mPct);if(Number.isFinite(a.spec.nextUnlockDays))setv('b-spec-unlock',a.spec.nextUnlockDays);if(Number.isFinite(a.spec.revenueGrowthPct))setv('b-spec-revgrowth',a.spec.revenueGrowthPct);if(a.spec.financingRisk&&a.spec.financingRisk!=='unknown')setv('b-spec-funding',a.spec.financingRisk);if(a.spec.notes)setv('b-spec-note',a.spec.notes);}
+      var h='<section style="margin-top:12px"><h2>AI 深研摘要 · '+esc(tk)+'</h2><div class="sub">'+esc(a.companyName||'')+' · 把握度 '+esc(a.confidence)+'% · 研究日期 '+esc(d.asOf||'')+'</div>';
+      h+=kv('林奇分类',a.lynchType||'UNKNOWN',a.lynchType?'p':'w')+kv('板块ETF',a.sectorEtf||'UNKNOWN',a.sectorEtf?'p':'w')+kv('TTM EPS',a.ttmEps===null?'UNKNOWN':String(a.ttmEps),a.epsStatus==='pos'?'p':a.epsStatus==='neg'?'w':'')+kv('目标价',a.targetPrice===null?'UNKNOWN':'$'+f2(a.targetPrice),a.targetPrice!==null?'w':'');
+      if(a.targetRationale)h+='<div class="alert wait"><b>目标价依据</b>'+esc(a.targetRationale)+'</div>';
+      if(a.catalysts&&a.catalysts.length)h+='<div class="alert pass"><b>催化剂</b>'+a.catalysts.map(esc).join('；')+'</div>';
+      if(a.risks&&a.risks.length)h+='<div class="alert wait"><b>主要风险</b>'+a.risks.map(esc).join('；')+'</div>';
+      if(a.bearCases&&a.bearCases.length)h+='<div class="alert stop"><b>反方观点</b>'+a.bearCases.map(esc).join('；')+'</div>';
+      if(a.sources&&a.sources.length){h+='<h3>来源 · 必须能点开复核</h3><div class="links">';a.sources.forEach(function(x){h+='<a href="'+esc(x.url)+'" target="_blank" rel="noopener"><div class="ln">'+esc(x.title||x.type||'来源')+' →</div><div class="ld">'+esc((x.date||'日期未标')+' · '+(x.type||''))+'</div></a>'});h+='</div>';}
+      h+='</section>'; if(box)box.innerHTML=h;
+      autoStatus('SEC + AI 深研完成并已自动填写。请先阅读来源与反方观点，再运行个股闸门；AI 填写不等于自动批准。'+(d.warning?' '+esc(d.warning):''),'ok');
+    }else{
+      autoStatus('SEC 数据已返回，但 AI 未运行：'+esc(d.warning||'OPENAI_API_KEY 未设置')+'。可验证字段已尽力保留，其余继续 UNKNOWN。','wait');
+      if(box&&sec)box.innerHTML='<div class="alert wait" style="margin-top:12px"><b>SEC 已连接</b>'+esc(sec.title||tk)+' · '+esc(sec.reason||'公开财务快照已读取，但 AI 未运行。')+'</div>';
+    }
+  }catch(e){autoStatus('AI 深研失败：'+esc(e.message)+'。已有行情数据不会被清空；基本面字段保持 UNKNOWN，系统不会放行。','bad');}
+}
+
+function copyBox(id, btn){
+  var el=document.getElementById(id);
+  el.select(); el.setSelectionRange(0,999999);
+  var ok=false;
+  try{ ok=document.execCommand('copy'); }catch(e){ ok=false; }
+  if(!ok && navigator.clipboard){ navigator.clipboard.writeText(el.value).then(function(){}); ok=true; }
+  var t=btn.textContent; btn.textContent = ok?'已复制':'复制失败，请手动全选';
+  setTimeout(function(){ btn.textContent=t; },1800);
+}
+
+/* ═══════════════ ② 买点闸门 ═══════════════ */
+function runGates(){
+  var out=document.getElementById('b-out');
+  var tk=val('b-tk').toUpperCase(), px=num('b-px'), ma=num('b-ma'), tg=num('b-tg'), dt=val('b-dt'), ctype=val('d-type');
+  var historyDays=num('b-history-days'), maKind=val('b-ma-kind');
+  var mdir=val('b-mdir'), madir=val('b-madir'), eps=val('b-eps'), p60=num('b-p60'), l52=num('b-l52');
+  var bw=num('b-bw'), bv=num('b-bv'), bp=num('b-bp'), s2w=num('b-s2w'), pv=val('b-pv'), st=val('b-st');
+  var ts=val('b-ts'), ts2=val('b-ts2'), cor=val('b-cor'), secetf=val('b-secetf').toUpperCase();
+  var acct=num('b-acct'), riskPct=num('b-risk'), thesis=val('b-th'), inv=val('b-inv');
+  var isSpec=ctype==='spec', spr=num('b-spec-runway'), spd=num('b-spec-dilution'), spu=num('b-spec-unlock'), spg=num('b-spec-revgrowth'), spf=val('b-spec-funding');
+  var errors=[];
+  if(!tk) errors.push('股票代码'); if(!ctype) errors.push('林奇分类'); if(!positive(px)) errors.push('现价'); if(!positive(ma)) errors.push('趋势均线'); if(!dt||!fresh(dt,RULES.stockFreshDays)) errors.push('新鲜的取价日期');
+  if(!mdir) errors.push('长期趋势方向'); if(!madir) errors.push('趋势均线方向'); if(!eps) errors.push('TTM EPS状态');
+  if(p60===null) errors.push('60日涨幅'); if(l52===null||l52<0) errors.push('低点距离'); if(!positive(acct)) errors.push('账户规模');
+  var maxRisk=isSpec?1:RULES.maxRiskPct; if(!(positive(riskPct)&&riskPct<=maxRisk)) errors.push('合法单笔风险(>0且≤'+maxRisk+'%)'); if(!cor) errors.push('相关性'); if(!secetf) errors.push('板块ETF');
+  if(!isSpec && historyDays!==null && historyDays<150) errors.push('历史不足150个交易日：成熟公司闸门不适用，请先确认是否应分类为SPEC');
+  if(isSpec){if(spr===null||spr<0)errors.push('SPEC现金跑道');if(spd===null||spd<0)errors.push('SPEC近12月稀释');if(!spf)errors.push('SPEC融资风险');}
+  if(errors.length){ out.innerHTML='<section><div class="alert stop"><b>DATA INCOMPLETE · 禁止判买入</b>缺少/无效：'+errors.join('、')+'。V4.2 不再替你使用乐观默认值。</div></section>'; LAST.gates=null; return; }
+
+  var dev=(px-ma)/ma*100, G=[];
+  var g0;
+  if(isSpec){
+    var bad=[],wait=[];
+    if(spr<9)bad.push('现金跑道 '+f1(spr)+'个月 <9个月'); else if(spr<18)wait.push('现金跑道仅 '+f1(spr)+'个月');
+    if(spd>50)bad.push('近12月稀释 '+f1(spd)+'% >50%'); else if(spd>25)wait.push('近12月稀释 '+f1(spd)+'%');
+    if(spu!==null&&spu>=0&&spu<30)wait.push('距已知解禁仅 '+Math.round(spu)+'天');
+    if(spf==='yes')wait.push('未来12月融资风险高');
+    if(bad.length)g0={s:'stop',m:'关闭',d:'SPEC 生存性硬否决：'+bad.join('；')};
+    else if(wait.length)g0={s:'wait',m:'挂起',d:'SPEC 生存性仍需等待/降风险：'+wait.join('；')};
+    else g0={s:'pass',m:'通过',d:'SPEC 生存性通过：现金跑道/稀释/融资风险未触发安全线。EPS<0 在本路径不是自动否决。'};
+  }else if(mdir==='down') g0={s:'stop',m:'关闭',d:'月线 / 200 日线向下。'};
+  else if(mdir==='flat') g0={s:'wait',m:'挂起',d:'月线走平，等待趋势转正。'};
+  else if(eps==='neg') g0={s:'stop',m:'关闭',d:'TTM EPS 为负。若公司确属 pre-profit/新IPO，应回到个股页分类为 SPEC，再走独立安全路径。'};
+  else g0={s:'pass',m:'通过',d:'月线向上且 TTM EPS 为正。'};
+  G.push({no:'GATE 0',n:isSpec?'资格 · SPEC 生存性':'资格 · 月线准入',r:g0});
+
+  var g1;
+  if(px>ma && madir==='up') g1={s:'pass',m:'通过',d:(isSpec&&String(maKind).indexOf('50')>=0?'新股50日趋势代理':'30周MA')+'：价格在均线上方且均线向上。'};
+  else if(px>ma && madir==='flat') g1={s:'wait',m:'挂起',d:'价格在均线上方但均线走平，趋势尚未确认。'};
+  else if(px<ma && madir==='down') g1={s:'stop',m:'关闭',d:'价格在趋势均线下方且均线向下。'};
+  else g1={s:'stop',m:'关闭',d:'价格/均线结构不属于可开仓上升趋势。'};
+  G.push({no:'GATE 1',n:isSpec?'趋势结构 · 新股允许50日代理':'阶段 · 温斯坦',r:g1});
+
+  var g2, devTxt='距趋势均线 <code>'+(dev>=0?'+':'')+f1(dev)+'%</code>';
+  if(!isSpec && l52<=20) g2={s:'stop',m:'关闭',d:'距52周低点仅 '+f1(l52)+'%，未过结构门槛。'};
+  else if(dev>25) g2={s:'stop',m:'关闭',d:devTxt+' → 极端偏离，禁止追价。'};
+  else if(dev>15) g2={s:'wait',m:'挂起',d:devTxt+' → 偏热，等待回调。'};
+  else if(dev>=-5) g2={s:'pass',m:'通过',d:devTxt+' → 处于趋势中枢附近。'};
+  else if(dev>=-15) g2={s:'wait',m:'挂起',d:devTxt+' → 偏冷，必须确认基本面未恶化。'};
+  else g2={s:'wait',m:'挂起',d:devTxt+' → 极端偏冷，等企稳，不猜底。'};
+  if(g2.s!=='stop' && p60>=30) g2.d+='<br>60日涨幅 '+f1(p60)+'% ≥30%，A1 追突破失效；只允许等结构重置。';
+  G.push({no:'GATE 2',n:'粗筛 · 偏离度',r:g2});
+
+  var a1=(bw!==null && bw>=0 && bw<=8 && bv!==null && bv>=1.5 && positive(bp) && dev<=15 && p60<30);
+  var a2=(s2w!==null && s2w>=8 && Math.abs(dev)<=5 && pv==='shrink' && st==='yes');
+  var entry='', g3;
+  if(a1&&a2){entry='A1';g3={s:'pass',m:'A1',d:'A1/A2 同时成立，按结构更清楚的 A1 管理止损。'};}
+  else if(a1){entry='A1';g3={s:'pass',m:'A1',d:'突破 ≤8周、量能 ≥1.5×、突破价已提供、偏离度合格。'};}
+  else if(a2){entry='A2';g3={s:'pass',m:'A2',d:'上升趋势 ≥8周、回踩均线 ±5%、缩量且已企稳。'};}
+  else{var why=[];if(bw!==null&&bw<0)why.push('突破周数不能为负数');if(bw!==null&&bw<=8&&!positive(bp))why.push('A1 缺突破点价格，禁止自动发明止损');if(bw!==null&&bw>8)why.push('A1 突破已超过8周');if(bv!==null&&bv<1.5)why.push('突破量能不足1.5×');if(p60>=30)why.push('60日涨幅过大，A1失效');if(Math.abs(dev)<=5&&s2w!==null&&s2w<8)why.push('上升趋势持续不足8周');if(Math.abs(dev)<=5&&pv!=='shrink')why.push('A2 未确认缩量回调');if(Math.abs(dev)<=5&&st!=='yes')why.push('A2 未确认企稳');if(!why.length)why.push('不属于 A1 或 A2');g3={s:'stop',m:'禁区',d:why.join('<br>· ')};}
+  G.push({no:'GATE 3',n:'买点归属 · A1 / A2',r:g3});
+
+  var stop=null,R=null,shares=0,posVal=0,realRisk=0,capped=false,g4;
+  if(entry==='A1') stop=positive(bp)?bp*0.94:null; else if(entry==='A2') stop=ma*0.96;
+  if(stop===null) g4={s:'stop',m:'锁死',d:'没有合法结构止损，不能计算 R。'};
+  else if(!positive(tg)||!ts||!ts2) g4={s:'wait',m:'挂起',d:'目标价、目标价来源或第二来源方向未完整填写。'};
+  else if(px<=stop) g4={s:'stop',m:'关闭',d:'结构止损不低于现价，输入/买点结构有误。'};
+  else{
+    R=(tg-px)/(px-stop); var riskAmt=acct*riskPct/100; shares=Math.floor(riskAmt/(px-stop)); posVal=shares*px;
+    var cap=acct*(isSpec?10:RULES.maxSinglePct)/100; if(posVal>cap){capped=true;shares=Math.floor(cap/px);posVal=shares*px;} realRisk=shares*(px-stop);
+    if(ts2==='opp'||ts2==='none') g4={s:'wait',m:'降级',d:'目标价没有第二个独立方向一致的依据。V4.2 不允许用单一乐观目标价制造漂亮R值。'};
+    else if(R<RULES.minR) g4={s:'stop',m:'关闭',d:'R='+f1(R)+' < '+RULES.minR+'，赔率不够。'};
+    else g4={s:'pass',m:'通过',d:'R='+f1(R)+'；计划内止损损失 $'+realRisk.toFixed(0)+'。<br><b>这不是最大亏损</b>，不包含跳空、滑点和流动性风险。'+(isSpec?' SPEC单仓上限10%。':'')+(capped?' 仓位已受上限压缩。':'')};
+  }
+  if(g4.s!=='stop'&&cor==='high')g4.d+='<br>相关性高：这是加同一风险因子，不是分散。';
+  G.push({no:'GATE 4',n:'R 值 · 仓位 · 风险',r:g4});
+
+  var g5;if(thesis.length<60)g5={s:'wait',m:'挂起',d:'基本面陈述不足60字或为空。'};else if(inv.length<20)g5={s:'wait',m:'挂起',d:'证伪条件必须具体且可验证；没有认错标准，不允许 BUY。'};else g5={s:'pass',m:'通过',d:'基本面逻辑与证伪条件均已写入。'};
+  G.push({no:'GATE 5',n:'基本面 · 证伪条件',r:g5});
+
+  var firstStop=-1;for(var i=0;i<G.length;i++){if(G[i].r.s==='stop'){firstStop=i;break;}}var hasWait=G.some(function(g){return g.r.s==='wait';});var verdict=firstStop>=0?'不买':hasWait?'观望':'买入';var vclass=verdict==='买入'?'buy':verdict==='观望'?'watch':'no';
+  var html='<section><h2>'+esc(tk)+' · V4.2 闸门结果</h2><div class="sub">取价日期 '+esc(dt)+' · '+esc(ctype)+' · Analysis ID '+esc(makeAnalysisId(tk,dt))+'</div><div class="gates">';
+  for(var j=0;j<G.length;j++){var g=G[j],shut=(firstStop>=0&&j>firstStop)?' shut':'';html+='<div class="gate '+g.r.s+shut+'"><div class="gt"><span class="gno">'+g.no+'</span><span class="gname">'+g.n+'</span><span class="gmark">'+(shut?'— 已锁死':g.r.m)+'</span></div><div class="gdetail">'+(shut?'前一道门已关闭。':g.r.d)+'</div></div>';}
+  html+='</div><div class="verdict"><div class="stamp '+vclass+'"><span class="sv">'+verdict+'</span><span class="sl">V4.2 DECISION</span></div><div class="vtext"><div class="vh">'+(verdict==='买入'?'个股层通过，但最终报告未通过前不得下单':verdict==='观望'?'条件未完整落实':'存在硬否决')+'</div><div class="vb">所有 UNKNOWN、来源冲突和上层风险都会在最终报告再次 Fail Closed。</div></div></div>';
+  if(verdict==='买入')html+='<div class="card-out"><div class="ch"><span>交易卡 · '+esc(tk)+'</span><span>'+entry+'</span></div><div class="cb">'+kv('入场价',f2(px),'')+kv('结构止损',f2(stop)+'（−'+f1((px-stop)/px*100)+'%）','s')+kv('目标价',f2(tg),'p')+kv('R值',f1(R),'p')+kv('股数',shares+' 股','')+kv('仓位市值','$'+posVal.toFixed(0),'')+kv('计划内止损损失','$'+realRisk.toFixed(0)+'（不含跳空/滑点）','w')+kv('证伪条件',inv,'')+'</div></div>';
+  html+='</section>';
+  LAST.gates={tk:tk,date:dt,analysisId:makeAnalysisId(tk,dt),secetf:secetf,ctype:ctype,isSpec:isSpec,verdict:verdict,entry:entry,px:px,stop:stop,tg:tg,R:R,shares:shares,posVal:posVal,realRisk:realRisk,gates:G,firstStop:firstStop,thesis:thesis,inv:inv,dev:dev,riskPct:riskPct};out.innerHTML=html;out.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function kv(k,v,cls){ return '<div class="kv"><span class="k">'+k+'</span><span class="v '+cls+'">'+esc(v)+'</span></div>'; }
+
+function tradeCardText(tk,entry,px,stop,tg,R,sh,pv,rr,acct,inv,th,dt){
+  var L=[];
+  L.push('【交易卡】'+tk+'  '+entry+' 买点  '+(dt||'日期未填'));
+  L.push('入场 $'+f2(px)+'   止损 $'+f2(stop)+'   目标 $'+f2(tg)+'   R='+f1(R));
+  L.push('股数 '+sh+'   市值 $'+pv.toFixed(0)+'（'+f1(pv/acct*100)+'% 账户）');
+  L.push('计划内止损损失 $'+rr.toFixed(0)+'（'+f1(rr/acct*100)+'% 账户，不含跳空/滑点）');
+  L.push('');
+  L.push('买入理由：'+th);
+  L.push('证伪条件：'+(inv||'未填 —— 补上'));
+  L.push('');
+  L.push('下单同时挂止损单。跌破止损无条件离场，不重新评估。');
+  return L.join('\n');
+}
+
+/* ═══════════════ ③ 卖点监控 ═══════════════ */
+var HOLD=[
+  {t:'INTC', s:50,  c:102},
+  {t:'IBIT', s:400, c:36.6},
+  {t:'SPCX', s:140, c:150},
+  {t:'NOK',  s:100, c:15}
+];
+function drawRows(){
+  var box=document.getElementById('s-rows'); var h='';
+  for(var i=0;i<HOLD.length;i++){
+    var o=HOLD[i];
+    h+='<div class="hrow"><div class="hh"><span class="ht">'+esc(o.t)+'</span><button class="mini" onclick="delRow('+i+')">删除</button></div>'
+      +'<div class="grid3">'
+      +ff('代码','h-t-'+i,'text',o.t)
+      +ff('股数','h-s-'+i,'number',o.s)
+      +ff('成本 $','h-c-'+i,'number',o.c)
+      +ff('现价 $ · moomoo','h-p-'+i,'number',o.p)
+      +ff('30 周 MA','h-m-'+i,'number',o.m)
+      +ff('入场时止损 $','h-x-'+i,'number',o.x)
+      +'</div><div class="grid" style="margin-top:10px">'
+      +'<div class="f"><label>30 周 MA 方向</label><select id="h-md-'+i+'">'+opts(o.md)+'</select></div>'
+      +'<div class="f"><label>月线方向</label><select id="h-mo-'+i+'">'+opts(o.mo)+'</select></div>'
+      +'</div>'
+      +'<label class="chk"><input type="checkbox" id="h-sec-'+i+'"'+(o.sec?' checked':'')+'> 所属板块 ETF 已跌破自身 30 周 MA</label>'
+      +'<label class="chk"><input type="checkbox" id="h-inv-'+i+'"'+(o.inv?' checked':'')+'> 买入时的核心逻辑已被证伪</label>'
+      +'</div>';
+  }
+  box.innerHTML=h;
+}
+function opts(sel){
+  var A=[['','— UNKNOWN —'],['up','向上'],['flat','走平'],['down','向下']], h='';
+  for(var i=0;i<A.length;i++) h+='<option value="'+A[i][0]+'"'+(sel===A[i][0]?' selected':'')+'>'+A[i][1]+'</option>';
+  return h;
+}
+function ff(lab,id,type,v){ v=(v===undefined||v===null)?'':v; return '<div class="f"><label>'+lab+'</label><input id="'+id+'" type="'+type+'" step="0.01" value="'+v+'"></div>'; }
+function syncRows(){
+  for(var i=0;i<HOLD.length;i++){
+    var e=document.getElementById('h-t-'+i); if(!e) continue;
+    HOLD[i].t=e.value; HOLD[i].s=document.getElementById('h-s-'+i).value;
+    HOLD[i].c=document.getElementById('h-c-'+i).value;
+    HOLD[i].p=document.getElementById('h-p-'+i).value; HOLD[i].m=document.getElementById('h-m-'+i).value;
+    HOLD[i].x=document.getElementById('h-x-'+i).value;
+    HOLD[i].md=document.getElementById('h-md-'+i).value; HOLD[i].mo=document.getElementById('h-mo-'+i).value;
+    HOLD[i].sec=document.getElementById('h-sec-'+i).checked; HOLD[i].inv=document.getElementById('h-inv-'+i).checked;
+  }
+}
+function addRow(){ syncRows(); HOLD.push({t:'',s:'',c:''}); drawRows(); }
+function delRow(i){ syncRows(); HOLD.splice(i,1); drawRows(); }
+
+function runSell(){
+  var acct=num('s-acct')||108000;
+  var out=document.getElementById('s-out'); var blocks=''; var totalVal=0; var missing=[]; var rows=[]; var allComplete=true;
+  for(var i=0;i<HOLD.length;i++){
+    var t=(val('h-t-'+i)||'?').toUpperCase(), s=num('h-s-'+i), c=num('h-c-'+i), p=num('h-p-'+i);
+    var m=num('h-m-'+i), x=num('h-x-'+i), md=val('h-md-'+i), mo=val('h-mo-'+i);
+    var secB=document.getElementById('h-sec-'+i).checked, invB=document.getElementById('h-inv-'+i).checked;
+    if(p===null||s===null){ missing.push(t); continue; }
+    var mv=s*p; totalVal+=mv;
+    var pnl=(c&&c>0)?((p-c)/c*100):null;
+    var A=[];
+    if(x===null){allComplete=false;A.push({s:'wait',h:'未记录入场止损',b:'没有入场前写死的结构止损，无法判断保命卖触发。'});}
+    if(m===null||!md||!mo){allComplete=false;A.push({s:'wait',h:'趋势数据不完整',b:'30周MA数值/方向或月线方向仍为 UNKNOWN。'});}
+
+    if(x!==null && p<x) A.push({s:'stop',h:'保命卖 · 立即清仓',b:'现价 $'+f2(p)+' 已跌破入场止损 $'+f2(x)+'。<b>无条件清仓，不重新评估。</b>止损是入场前就写死的合约，跌破之后再找理由是自欺。'});
+    if(m!==null && p<m && md==='down') A.push({s:'stop',h:'趋势卖 · 减至半仓或清仓',b:'价 $'+f2(p)+' 跌破 30 周 MA $'+f2(m)+'，且 MA 已转向下 → Stage 3→4 确认。建议至少减 50%。'});
+    else if(m!==null && p<m) A.push({s:'wait',h:'趋势预警 · 降级观察',b:'已跌破 30 周 MA，但 MA 尚未转向下。只减不加，禁止补仓。若周线连续两周收于 MA 下方，按 Stage 4 处理。'});
+    if(mo==='down') A.push({s:'stop',h:'月线转向下 · 只减不加',b:'无论日线多好，价值中枢本身在下移。禁止加仓，禁止卖 put。'});
+    if(pnl!==null && pnl<-25) A.push({s:'stop',h:'浮亏 '+f1(pnl)+'% · 强制重走七步',b:'超过 25% 硬线。必须输出「重新买入 or 认赔」二选一，<b>禁止"再等等"</b>。若现在不会以这个价格买入它，就该卖。'});
+    if(secB) A.push({s:'wait',h:'板块 ETF 破位 · 全板块降级',b:'该板块所有持仓降级观察，暂停任何新增敞口。'});
+    if(invB) A.push({s:'stop',h:'逻辑证伪 · 立即减仓',b:'<b>与价格无关。</b>哪怕现在是浮盈，买入理由消失了就该走 —— 继续持有等于换了一个理由，那是新决策，需要重走完整流程。'});
+    if(pnl!==null && pnl>20) A.push({s:'wait',h:'浮盈 '+f1(pnl)+'% · 风险复核',b:'V4 不因 +20% 自动止盈。检查该仓位的风险贡献、趋势是否仍有效、基本面是否被证伪，以及是否因上涨导致组合过度集中。'});
+    if(mv/acct>0.20) A.push({s:'wait',h:'单仓 '+f1(mv/acct*100)+'% · 超 20% 上限',b:'超出单一标的仓位上限，需减至 $'+(acct*0.2).toFixed(0)+' 以内。'});
+
+    if(!A.length) A.push({s:'pass',h:'无触发 · 继续持有',b:'四类卖出条件均未触发。继续持有，但每周复核一次。'});
+
+    blocks+='<section><h2>'+esc(t)+'</h2><div class="sub">'
+      +s+' 股 @ 成本 $'+f2(c||0)+' · 现价 $'+f2(p)+' · 市值 $'+mv.toFixed(0)+' ('+f1(mv/acct*100)+'% 账户)'
+      +(pnl!==null?' · <b style="color:'+(pnl>=0?'var(--pass)':'var(--stop)')+'">'+(pnl>=0?'+':'')+f1(pnl)+'%</b>':'')+'</div>';
+    for(var k=0;k<A.length;k++) blocks+='<div class="alert '+A[k].s+'"><b>'+A[k].h+'</b>'+A[k].b+'</div>';
+    blocks+='</section>';
+    var worst='p'; for(var k=0;k<A.length;k++){ if(A[k].s==='stop'){worst='s';break;} if(A[k].s==='wait')worst='w'; }
+    rows.push({t:t,pnl:pnl,worst:worst,alerts:A.map(function(a){return a.h;})});
+  }
+
+  var head='<section><h2>组合层面</h2><div class="sub">'
+    +(val('s-date')?'取价日期 '+esc(val('s-date')):'<span style="color:var(--stop)">🔴 未填取价日期</span>')+'</div>'
+    +kv('持股总市值','$'+totalVal.toFixed(0),'')
+    +kv('现金 / 其他','$'+(acct-totalVal).toFixed(0)+'  ('+f1((acct-totalVal)/acct*100)+'%)','')
+    +(missing.length?'<div class="alert wait" style="margin-top:12px"><b>'+missing.join(' / ')+' 未填现价</b>没有价格就没有判定。这不是工具的限制，是你的 Layer 1 数据真实性协议 —— 去 moomoo 抄一遍。</div>':'')
+    +'</section>';
+
+  LAST.sell={rows:rows,totalVal:totalVal,missing:missing,complete:(missing.length===0&&allComplete)};
+  out.innerHTML=head+blocks;
+  out.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ═══════════════ ④ 基本面深研 ═══════════════ */
+var LENS={
+  slow:{n:'缓慢增长型',ban:'禁用成长叙事',items:[['股息覆盖率','自由现金流 ÷ 分红总额','>1.5 倍'],['派息率','分红 ÷ 净利润','<60%'],['净债务 / EBITDA','资产负债表','<3 倍'],['营收增速','近 3 年','2–5% 即正常']]},
+  stalwart:{n:'稳定增长型',ban:'禁用「PE 低就是便宜」',items:[['ROIC','投入资本回报率','>15% 且稳定'],['毛利率趋势','近 8 个季度','看方向，不看绝对值'],['护城河耐久性','定性','5 年后还在吗'],['真实经营 EPS','剔除一次性收益','头条 EPS 常被非现金收益虚增']]},
+  fast:{n:'快速增长型',ban:'禁用纯 PE 估值',items:[['营收增速','YoY 与 QoQ','增速是否在减速'],['PEG','PE ÷ 增速','<1.5'],['单位经济','毛利率、CAC 回收期','规模化后是否改善'],['Capex ÷ 经营现金流','现金流量表','FCF 是否被资本开支吞掉'],['TAM 渗透率','营收 ÷ 可及市场','跑道还剩多长']]},
+  cyclical:{n:'周期型',ban:'🔴 禁用「低 PE = 便宜」—— 周期股 PE 最低时通常是顶部',items:[['周期位置','产能利用率、库存天数','扩张 / 见顶 / 去库存 / 触底'],['PB vs 历史区间','Macrotrends 10 年','靠近历史 PB 低位才是机会'],['历史 PE 区间','非当前 PE','当前值落在区间哪一档'],['供给端','行业新增产能计划','未来 2 年是否有大量新产能']]},
+  turn:{n:'困境反转型',ban:'禁用未来盈利预测',items:[['现金 vs 债务到期表','10-Q 附注','能撑几个季度'],['季度现金消耗','经营现金流 + Capex','按当前速度还能烧多久'],['催化剂日期','具体到某个季度','没有日期的催化剂不算催化剂'],['是否已稀释','股本变动','增发会摊薄反转收益'],['内部人交易','OpenInsider','开放市场买入 > 期权行权']]},
+  asset:{n:'资产型',ban:'禁用盈利指标',items:[['NAV 估算','资产重估','市值 vs NAV 折价'],['隐藏资产','土地、专利、投资持股','账面价值远低于市价的部分'],['资产变现路径','管理层是否有意愿','有价值但不变现等于没有']]},
+  spec:{n:'亏损投机型',ban:'🔴 禁用一切盈利估值指标（PE、PEG、EV/EBITDA）',items:[['现金跑道','现金 ÷ 季度消耗','<4 个季度 = 大概率增发'],['稀释历史','近 3 年股本增幅','年增 >20% 是长期杀手'],['内部人交易','OpenInsider','净卖出 = 红旗'],['解禁时间表','S-1 / 招股书','SPAC 与新股的主要抛压来源'],['叙事节点','下一个能证实/证伪的事件','没有节点就只是故事'],['仓位上限','账户占比','这类标的必须先定上限再谈买点']]}
+};
+function showChecklist(){
+  var k=val('d-type'), box=document.getElementById('d-check'), spec=document.getElementById('spec-fields');
+  if(spec) spec.style.display=(k==='spec')?'block':'none';
+  if(!k){ box.innerHTML=''; return; }
+  var L=LENS[k], h='<h3>'+L.n+' · 专属透镜</h3><div class="alert wait" style="margin-bottom:12px"><b>类型禁令</b>'+L.ban+'</div>'
+    +'<table><thead><tr><th>必查项</th><th>怎么算</th><th style="width:150px">判断线</th></tr></thead><tbody>';
+  for(var i=0;i<L.items.length;i++) h+='<tr><td><b>'+L.items[i][0]+'</b></td><td>'+L.items[i][1]+'</td><td class="n">'+L.items[i][2]+'</td></tr>';
+  box.innerHTML=h+'</tbody></table>';
+}
+function buildLinks(){
+  var t=val('d-tk').toUpperCase(), box=document.getElementById('d-links');
+  if(!t){ box.innerHTML='<div class="empty">先在上面填入代码</div>'; return; }
+  var L=[
+    ['StockAnalysis 财务','https://stockanalysis.com/stocks/'+t+'/financials/','三大报表 · TTM EPS 实际值 · 逐季对比'],
+    ['Macrotrends 历史区间','https://www.macrotrends.net/stocks/charts/'+t+'/x/pe-ratio','10 年 PE / PB / 毛利率区间'],
+    ['SEC EDGAR 原始文件','https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK='+t+'&type=10-Q&dateb=&owner=include&count=20','10-K 风险因素 · 10-Q 附注 · 8-K'],
+    ['OpenInsider 内部人','http://openinsider.com/search?q='+t,'开放市场买入才有信号，期权行权没有'],
+    ['Finviz 概览','https://finviz.com/quote.ashx?t='+t,'一屏看完关键比率与 52 周区间'],
+    ['TradingView 图表','https://www.tradingview.com/chart/?symbol='+t,'加 SMA(150) 当 30 周线，加 SMA(200) 看资格'],
+    ['Market Chameleon IV','https://marketchameleon.com/Overview/'+t+'/','IV 历史 · 财报日 · IV vs HV'],
+    ['Barchart IV Rank','https://www.barchart.com/stocks/quotes/'+t+'/volatility-greeks','卖权利金前必查 IV Rank >20']
+  ];
+  var h='<div class="links">';
+  for(var i=0;i<L.length;i++) h+='<a href="'+L[i][1]+'" target="_blank" rel="noopener"><div class="ln">'+L[i][0]+' →</div><div class="ld">'+L[i][2]+'</div></a>';
+  box.innerHTML=h+'</div>';
+}
+function buildPrompt(){
+  var t=val('d-tk').toUpperCase()||'（代码）', k=val('d-type');
+  var L=k?LENS[k]:null;
+  var px=val('d-px'), ma=val('d-ma'), pe=val('d-pe'), p60=val('d-p60'), view=val('d-view');
+  var dev='';
+  if(px&&ma&&parseFloat(ma)>0) dev=f1((parseFloat(px)-parseFloat(ma))/parseFloat(ma)*100)+'%';
+  var P=[];
+  P.push('请对 '+t+' 走完整的深研档七步框架（V4.2 FINAL 框架）。');
+  P.push('');
+  P.push('【我已掌握的数据 · 请先 web_search 核实并标注日期】');
+  P.push('· 现价：'+(px?'$'+px:'待你搜索'));
+  P.push('· 30 周 MA：'+(ma?'$'+ma:'待你搜索')+(dev?'（偏离度 '+dev+'）':''));
+  P.push('· TTM PE（实际报出，非 Forward）：'+(pe||'待你核实'));
+  P.push('· 60 日涨幅：'+(p60?p60+'%':'待你搜索'));
+  P.push('');
+  P.push('【Step 0 · 分类】');
+  if(L){ P.push('我的初步分类：'+L.n+'。请先确认或反驳这个分类，再往下走。'); P.push('该类型禁令：'+L.ban.replace(/🔴 /g,'')); }
+  else P.push('请先做林奇六类分类，声明「它是 X 类，用 Y 框架」，再开始分析。');
+  P.push('');
+  P.push('【硬性要求】');
+  P.push('1. 精力分配 80% 基本面 / 20% 技术面。技术篇幅超过基本面请自我标注「本次比例失衡」。');
+  P.push('2. 必须写出这句话，写不出就判观望：「这条均线在上升，是因为 ____（具体商业事实）。这个原因预计还能持续 ____ 个季度，理由是 ____。」');
+  P.push('3. 七步逐项标 ✅⚠️❌，3 项失败 = 不买。Stage 4 或月线向下 = 硬否决，不看其他条件。');
+  P.push('4. 买点必须归属 A1（突破）或 A2（回调），两者都不属于 = 禁区 = 不买。');
+  P.push('5. R 值按实际入场价计算，<2.0 硬否决。目标价须声明来源：R(技)/R(卖)/R(估)；技与卖方向相反则自动降级观望。');
+  P.push('6. 明确说出与我现有持仓（INTC / IBIT / SPCX / NOK）的相关性，>0.7 必须写明「这是加仓，不是分散」。');
+  P.push('7. 输出反方观点 ≥2 条并逐条反驳，给出把握度百分比与 🔴🟡🟢 标记。');
+  P.push('8. 结论必须落到「买入 / 观望 / 不买」三选一，禁止用「取决于你的风险偏好」回避。');
+  P.push('9. 若判观望或不买，给出具体的重扫触发价格与触发事件。');
+  if(L){
+    P.push('');
+    P.push('【'+L.n+' 必查项 · 请逐条给出数字与判断】');
+    for(var i=0;i<L.items.length;i++) P.push((i+1)+'. '+L.items[i][0]+'（'+L.items[i][1]+'）—— 判断线：'+L.items[i][2]);
+  }
+  if(view){ P.push(''); P.push('【我目前的看法 · 请直接攻击它的弱点，不要附和】'); P.push(view); }
+  document.getElementById('d-prompt').value=P.join('\n');
+}
+
+/* ═══════════════ ① 第 0 层 · 市场形势 ═══════════════ */
+function runMarket(){
+  var out=document.getElementById('m-out'); var spy=num('m-spy'), sma=num('m-spyma'), sdir=val('m-spydir'), hyg=num('m-hyg'), hma=num('m-hygma'), sofr=val('m-sofr');
+  var oas=num('m-oas'),oas20=num('m-oas20'),vix=num('m-vix'), aaii=num('m-aaii'), fg=num('m-fg'), naaim=num('m-naaim'), jpy=num('m-jpy'), dt=val('m-date'); var errors=[];
+  if(!positive(spy))errors.push('SPY现价'); if(!positive(sma))errors.push('SPY 150日MA'); if(!sdir)errors.push('SPY MA方向'); if(!positive(hyg))errors.push('HYG现价'); if(!positive(hma))errors.push('HYG 250日MA'); if(!positive(vix))errors.push('VIX'); if(!dt||!fresh(dt,RULES.marketFreshDays))errors.push('新鲜日期');
+  if(errors.length){out.innerHTML='<section><div class="alert stop"><b>MARKET DATA INCOMPLETE</b>'+errors.join('、')+'。AAII/F&G/NAAIM 在 V4 仅为选填情绪指标，不再是必填。</div></section>';LAST.market=null;return;}
+  var red=[],hot=[],fear=[],warn=[],ok=[],spyDev=(spy-sma)/sma*100,trendWarn=false,creditWarn=false;
+  if(spy<sma&&sdir==='down')red.push(['大盘 Stage 4','SPY 在 30周MA 下方且 MA 向下。']); else if(spy<sma){trendWarn=true;warn.push(['大盘跌破30周MA','趋势待确认，暂停新增风险。']);} else ok.push(['大盘趋势','SPY 在 30周MA 上方 '+f1(spyDev)+'%。']);
+  if(hyg<hma && oas20!==null && oas20>50)red.push(['信用共振恶化','HYG 跌破50周MA，同时 HY OAS 约20日扩大 '+f1(oas20)+'bp。']);
+  else if(hyg<hma){creditWarn=true;warn.push(['HYG信用代理走弱','HYG 跌破50周MA，但没有 OAS 明显扩张共振；降风险，不单独判系统性红灯。']);}
+  else ok.push(['信用代理','HYG 在50周MA上方。']);
+  if(oas!==null){ if(oas20!==null&&oas20>75){creditWarn=true;warn.push(['HY OAS 快速扩大','当前 '+f2(oas)+'%，约20日扩大 '+f1(oas20)+'bp。']);} else ok.push(['HY OAS','当前 '+f2(oas)+'%'+(oas20!==null?'，20日变化 '+f1(oas20)+'bp':'')]); }
+  if(sofr==='tight')red.push(['短端资金压力','SOFR/资金市场持续异常偏紧。']);
+  if(vix<13)hot.push(['VIX偏低','VIX '+f1(vix)]); if(aaii!==null&&aaii>55)hot.push(['AAII偏热',f1(aaii)+'%']); if(fg!==null&&fg>75)hot.push(['F&G极度贪婪',fg]); if(naaim!==null&&naaim>110)hot.push(['NAAIM高敞口',naaim]);
+  if(vix>35)fear.push(['VIX极高',f1(vix)]); if(aaii!==null&&aaii<25)fear.push(['AAII极低',f1(aaii)+'%']); if(fg!==null&&fg<25)fear.push(['F&G极度恐慌',fg]); if(naaim!==null&&naaim<40)fear.push(['NAAIM低敞口',naaim]);
+  var light,lclass,lhead,lbody,riskMultiplier=1,mode='normal',perm=[];
+  if(red.length){light='红灯';lclass='no';lhead='结构/信用否决 · '+red.length+'项';lbody='停止新开仓。';riskMultiplier=0;mode='structural-red';}
+  else if(trendWarn){light='黄灯';lclass='watch';lhead='趋势破位待确认';lbody='价格已跌破关键均线，暂停新增风险。';riskMultiplier=0;mode='trend-warning';}
+  else if(creditWarn){light='黄灯';lclass='watch';lhead='信用环境走弱';lbody='尚未形成信用共振红灯，但信用代理/利差明显变差，标准风险预算降至75%。';riskMultiplier=0.75;mode='credit-warning';}
+  else if(hot.length>=2){light='黄灯';lclass='watch';lhead='情绪过热 · 不再直接判红灯';lbody='V4 把同类情绪指标视为风险倍率，而不是重复计票的一票否决。标准风险预算减半。';riskMultiplier=0.5;mode='hot';}
+  else if(fear.length>=2){light='黄灯';lclass='watch';lhead='恐慌但趋势未破';lbody='只允许确认后的回调/企稳买点，风险预算减半。';riskMultiplier=0.5;mode='fear';}
+  else if(hot.length===1||fear.length===1){light='黄灯';lclass='watch';lhead='单项情绪极值';lbody='不否决趋势，只把风险预算降至75%。';riskMultiplier=0.75;mode='sentiment';}
+  else{light='绿灯';lclass='buy';lhead='结构正常';lbody='允许继续走个股与组合层；绿灯不是买入信号。';riskMultiplier=1;}
+  perm=[['新开仓',riskMultiplier===0?'暂停':'允许 · 风险倍率 '+riskMultiplier,''],['A1',riskMultiplier===0?'暂停':mode==='fear'?'谨慎/优先A2':'允许',''],['A2',riskMultiplier===0?'暂停':'允许，必须确认企稳','']];
+  var h='<section><h2>V4 市场许可</h2><div class="sub">数据日期 '+esc(dt)+(jpy!==null?' · USD/JPY '+f1(jpy)+'（仅观察，不使用固定145线）':'')+'</div><div class="verdict"><div class="stamp '+lclass+'"><span class="sv">'+light+'</span><span class="sl">MARKET</span></div><div class="vtext"><div class="vh">'+lhead+'</div><div class="vb">'+lbody+'</div></div></div><h3>动作与风险倍率</h3>';
+  for(var i=0;i<perm.length;i++)h+=kv(perm[i][0],perm[i][1],'');
+  h+='<h3>读数</h3>'; red.forEach(function(x){h+='<div class="alert stop"><b>'+x[0]+'</b>'+x[1]+'</div>'}); warn.forEach(function(x){h+='<div class="alert wait"><b>'+x[0]+'</b>'+x[1]+'</div>'}); hot.forEach(function(x){h+='<div class="alert wait"><b>过热 · '+x[0]+'</b>'+x[1]+'</div>'}); fear.forEach(function(x){h+='<div class="alert wait"><b>恐慌 · '+x[0]+'</b>'+x[1]+'</div>'}); ok.forEach(function(x){h+='<div class="alert pass"><b>'+x[0]+'</b>'+x[1]+'</div>'}); h+='</section>';
+  LAST.market={light:light,head:lhead,perm:perm,date:dt,riskMultiplier:riskMultiplier,mode:mode}; out.innerHTML=h; out.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ═══════════════ ④ 第 3 层 · 组合 ═══════════════ */
+function drawCorr(preserve){
+  var box=document.getElementById('c-rows'), h='';
+  for(var i=0;i<HOLD.length;i++){
+    var t=HOLD[i].t||('持仓 '+(i+1)); var old=document.getElementById('c-cor-'+i); var ov=(preserve&&old)?old.value:''; var actual=(preserve&&old)?old.dataset.actual:'';
+    h+='<div class="f" style="margin-bottom:10px"><label>'+esc(t)+' <i>· '+HOLD[i].s+' 股'+(HOLD[i].p?' · 现价 $'+HOLD[i].p:' · 现价 UNKNOWN')+'</i></label>'
+      +'<select id="c-cor-'+i+'" data-actual="'+esc(actual||'')+'"><option value="">— UNKNOWN —</option><option value="0.3"'+(ov==='0.3'?' selected':'')+'>低 &lt;0.5 · 真分散</option><option value="0.6"'+(ov==='0.6'?' selected':'')+'>中 0.5–0.7 · 半重叠</option><option value="0.8"'+(ov==='0.8'?' selected':'')+'>高 &gt;0.7 · 等于加仓</option></select>'+(actual?'<div class="hint">自动计算 corr120 = '+f2(parseFloat(actual))+'</div>':'')+'</div>';
+  }
+  box.innerHTML=h||'<div class="empty">持仓列表为空，请先到「⑦ 持仓监控」填写</div>';
+}
+
+function runPort(){
+  syncRows(); var out=document.getElementById('c-out'); var tk=val('c-tk').toUpperCase(), amt=num('c-amt'), sec=val('c-sec'), acct=num('c-acct'), cash=num('c-cash'), dt=val('c-date');
+  var errors=[]; if(!tk)errors.push('候选代码'); if(!positive(amt))errors.push('拟投入金额'); if(!positive(acct))errors.push('账户总值'); if(cash===null||cash<0)errors.push('当前现金'); if(!dt||!fresh(dt,RULES.stockFreshDays))errors.push('新鲜的数据日期'); if(!document.getElementById('c-sector-ok').checked)errors.push('板块≤35%确认');
+  var holdRows=[],maxCor=-1,missingPx=[],missingCor=[],highNames=[],midNames=[],totalHold=0;
+  for(var i=0;i<HOLD.length;i++){
+    var sym=(HOLD[i].t||'').toUpperCase(), sh=parseFloat(HOLD[i].s)||0; if(!sym||sh<=0)continue;
+    var px=parseFloat(HOLD[i].p); if(!positive(px)){missingPx.push(sym);continue;}
+    var e=document.getElementById('c-cor-'+i), cor=e?parseFloat(e.value):NaN; if(isNaN(cor)){missingCor.push(sym);continue;}
+    var mv=sh*px; totalHold+=mv; maxCor=Math.max(maxCor,cor); if(cor>=0.8)highNames.push(sym); else if(cor>=0.6)midNames.push(sym); holdRows.push([sym,mv,cor,e.dataset.actual]);
+  }
+  if(missingPx.length)errors.push('持仓现价：'+missingPx.join('/')); if(missingCor.length)errors.push('相关性：'+missingCor.join('/'));
+  if(errors.length){out.innerHTML='<section><div class="alert stop"><b>PORTFOLIO DATA INCOMPLETE · 禁止放行</b>'+errors.join('；')+'。V4 不再用成本价冒充现价，也不把 UNKNOWN 当低相关。</div></section>';LAST.port={tk:tk,date:dt,status:'incomplete'};return;}
+
+  var cap=acct*RULES.maxSinglePct/100, suggest=Math.min(amt,cap), A=[];
+  if(amt>cap) A.push({s:'wait',h:'单仓20%上限',b:'拟投入已压缩到 $'+suggest.toFixed(0)+'。'});
+  if(maxCor>=0.8){suggest=Math.min(suggest,acct*0.10);A.push({s:'wait',h:'高相关 · 这是加仓',b:'与 '+highNames.join('、')+' 高相关，候选仓位上限进一步压至账户10%。'});}
+  else if(maxCor>=0.6){suggest=suggest/2;A.push({s:'wait',h:'半重叠 · 仓位减半',b:'与 '+midNames.join('、')+' 中等相关。'});}
+  else A.push({s:'pass',h:'相关性可接受',b:'与现有持仓均低相关。'});
+  var afterCash=cash-suggest, afterPct=afterCash/acct*100;
+  if(afterCash<0)A.push({s:'stop',h:'现金不足',b:'建议投入超过当前现金。'});
+  else if(afterPct<RULES.minCashPct)A.push({s:'wait',h:'现金缓冲不足',b:'投入后现金仅 '+f1(afterPct)+'%，低于 '+RULES.minCashPct+'% 缓冲。'});
+  else A.push({s:'pass',h:'现金缓冲合格',b:'投入后现金 '+f1(afterPct)+'%。'});
+  A.push({s:'pass',h:'板块集中已人工确认',b:'已确认加入候选后板块总敞口 ≤ '+RULES.maxSectorPct+'%。'});
+  var hasStop=A.some(function(x){return x.s==='stop'}), hasWait=A.some(function(x){return x.s==='wait'&&x.h==='现金缓冲不足'}); var status=hasStop?'stop':hasWait?'wait':'pass';
+  var h='<section><h2>'+esc(tk)+' · V4 组合层</h2><div class="sub">'+esc(sec||'板块未命名')+' · '+esc(dt)+'</div><div class="card-out"><div class="ch"><span>仓位结论</span><span>'+status.toUpperCase()+'</span></div><div class="cb">'+kv('拟投入','$'+amt.toFixed(0),'')+kv('调整后上限','$'+suggest.toFixed(0)+' ('+f1(suggest/acct*100)+'%)',suggest<amt?'w':'p')+kv('现有持股市值','$'+totalHold.toFixed(0),'')+kv('投入后现金','$'+afterCash.toFixed(0)+' ('+f1(afterPct)+'%)',afterPct<RULES.minCashPct?'w':'p')+'</div></div><h3>判定</h3>';
+  for(var j=0;j<A.length;j++)h+='<div class="alert '+A[j].s+'"><b>'+A[j].h+'</b>'+A[j].b+'</div>';
+  h+='<div class="hint">V4 删除了“低于5%仓位没有意义”的规则。仓位小不等于无效，真正要控制的是计划损失、波动率和相关风险因子。</div></section>';
+  LAST.port={tk:tk,date:dt,status:status,amt:amt,suggest:suggest,sec:sec,maxCor:maxCor,afterCash:afterCash,afterCashPct:afterPct}; out.innerHTML=h; out.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ═══════════════ 跨层结果暂存 ═══════════════ */
+var LAST={market:null,gates:null,port:null,sell:null,intel:null,hype:null};
+
+/* ═══════════════ ③ 内部人信号 ═══════════════ */
+function runIntel(){
+  var out=document.getElementById('i-out');
+  var tk=(val('i-tk')||'该股').toUpperCase();
+  var n=num('i-n'), amt=num('i-amt'), ceo=val('i-ceo'), typ=val('i-type'), sell=val('i-sell');
+  var bp=num('i-bp'), px=num('i-px');
+  if(n===null||amt===null){ out.innerHTML='<div class="alert stop" style="margin-top:14px"><b>缺少买入人数或金额</b>这两个是评分的基础。</div>'; return; }
+
+  var score=0, notes=[];
+  if(typ==='M'){ score=-99; notes.push(['stop','期权行权不算买入','M / A 类型是薪酬兑现，不是判断表达。<b>整条信号作废</b>，不要拿它当理由。']); }
+  else{
+    if(typ==='mix') notes.push(['wait','混合类型需拆开看','回到 OpenInsider 只统计 P 那几行，重新填一次。混合数据会高估信号。']);
+    if(n>=3){ score+=3; notes.push(['pass','集群买入 · '+n+' 人','多名内部人同期买入是这套体系里最强的一类信号。单人买入可能是个人财务安排，集群不是。']); }
+    else if(n===2){ score+=2; notes.push(['pass','2 人买入','够得上集群的下限。']); }
+    else { score+=1; notes.push(['wait','仅 1 人买入','单人买入解释空间大 —— 可能是安抚市场的姿态，也可能只是个人配置。信号弱。']); }
+
+    if(amt>=1000000){ score+=3; notes.push(['pass','金额 $'+(amt/1000000).toFixed(2)+'M','百万级买入，很难解释成做样子。']); }
+    else if(amt>=250000){ score+=2; notes.push(['pass','金额 $'+(amt/1000).toFixed(0)+'k','有实质分量。']); }
+    else if(amt>=50000){ score+=1; notes.push(['wait','金额 $'+(amt/1000).toFixed(0)+'k','中等偏小。对高管个人财富而言可能只是零头 —— 建议查一下他的总持股比例。']); }
+    else notes.push(['wait','金额偏小','$'+amt.toFixed(0)+' 对上市公司高管通常无关痛痒，接近于象征性买入。']);
+
+    if(ceo==='yes'){ score+=2; notes.push(['pass','含 CEO / CFO','这两个职位掌握最完整的经营信息，他们的买入权重高于董事。']); }
+    else notes.push(['wait','无 CEO / CFO 参与','董事与副总的信息优势弱于 CEO/CFO。']);
+
+    if(sell==='heavy'){ score=-99; notes.push(['stop','同期卖出金额更大 · 整条信号作废','净卖出。买入那部分很可能是形象操作。<b>这是否决项，不是扣分项</b> —— 前面几条正面证据不能把它抵消掉。']); }
+    else if(sell==='some'){ score-=1; notes.push(['wait','同期有少量卖出','正常现象（税务、分散），但削弱信号纯度。']); }
+    else { score+=1; notes.push(['pass','同期无卖出','信号纯净。']); }
+
+    if(bp!==null&&px!==null&&bp>0){
+      var gap=(px-bp)/bp*100;
+      if(gap>25) notes.push(['wait','你比内部人贵 '+f1(gap)+'%','他们在 $'+f2(bp)+' 买，你在 $'+f2(px)+' 买。<b>同一个信号，不同的赔率。</b>内部人的安全边际你没有。']);
+      else if(gap<-10) notes.push(['pass','你比内部人便宜 '+f1(-gap)+'%','现价低于内部人成本，赔率优于他们。但要先问：他们买入之后发生了什么坏事？']);
+      else notes.push(['pass','与内部人成本接近','价差 '+f1(gap)+'%，赔率相当。']);
+    }
+  }
+
+  var lvl, lcls, ltxt;
+  if(score<0){ lvl='反向'; lcls='no'; ltxt='这不是买入信号，是警告。'; }
+  else if(score>=8){ lvl='强'; lcls='buy'; ltxt='把 '+tk+' 放进候选池，<b>然后走完五层漏斗</b>。内部人买入只负责提出候选，不负责决定买点。'; }
+  else if(score>=5){ lvl='中'; lcls='watch'; ltxt='值得放进 90 天观察名单，但不足以单独提级。等技术面给出 A1 或 A2。'; }
+  else { lvl='弱'; lcls='watch'; ltxt='噪音大于信号。不必因为这条记录改变对 '+tk+' 的看法。'; }
+
+  LAST.intel={tk:tk,score:score,lvl:lvl,n:n,amt:amt};
+
+  var h='<div class="verdict" style="margin-top:18px"><div class="stamp '+lcls+'"><span class="sv">'+lvl+'</span><span class="sl">INSIDER</span></div>'
+    +'<div class="vtext"><div class="vh">'+esc(tk)+' 内部人信号强度：'+lvl+(score>=0?'（'+score+' / 9 分）':'')+'</div><div class="vb">'+ltxt+'</div></div></div>';
+  for(var i=0;i<notes.length;i++) h+='<div class="alert '+notes[i][0]+'"><b>'+notes[i][1]+'</b>'+notes[i][2]+'</div>';
+  out.innerHTML=h;
+  out.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ═══════════════ ③ 社交热度 ═══════════════ */
+function runHype(){
+  var out=document.getElementById('i-hout');
+  var tk=(val('i-htk')||val('i-tk')||'').toUpperCase(); var m1=num('i-m1'), m0=num('i-m0'), r30=num('i-r30');
+  if(!tk){ out.innerHTML='<div class="alert stop" style="margin-top:14px"><b>缺股票代码</b>V4 必须把热度绑定到具体 ticker，防止不同股票的数据串台。</div>'; return; }
+  if(m1===null||m0===null){ out.innerHTML='<div class="alert stop" style="margin-top:14px"><b>缺少提及量</b>ApeWisdom 页面上每只股票都有当前提及量与 24 小时前的对比。</div>'; return; }
+  var chg=(m0>0)?((m1-m0)/m0*100):null;
+  var lvl,lcls,head,body,acts=[];
+
+  if(chg!==null && m1>=20 && chg>300 && r30!==null && r30>20){
+    lvl='过热'; lcls='no';
+    head='提及量 '+(chg>900?'暴增':'+'+f1(chg)+'%')+' 且股价已涨 '+f1(r30)+'%';
+    body='热度和涨幅同时到位 = 你已经不是早期，是最后一批。<b>这时候的正确动作是减仓或卖 covered call，不是买入。</b>';
+    acts=[['新开仓','禁止','s'],['A1 突破买点','禁止 —— 高热度突破多为诱多','s'],['持仓','考虑部分止盈','w'],['Covered call','最佳窗口','p']];
+  } else if(chg!==null && m1>=20 && chg>300){
+    lvl='升温'; lcls='watch';
+    head='提及量 +'+f1(chg)+'% 但股价尚未大动';
+    body='两种可能，你无法从热度本身区分：① 早期资金在建仓 ② 有人在拉人接盘。<br><b>不要用热度决定，回去跑五层漏斗。</b>如果闸门通不过，热度再高也不买。';
+    acts=[['新开仓','需通过五层漏斗','w'],['A1 突破买点','允许，但量能确认要更严','w'],['该做的事','去读反方帖，找证伪线索','']];
+  } else if(chg!==null && chg<-50){
+    lvl='退潮'; lcls='watch';
+    head='提及量 '+f1(chg)+'%';
+    body='叙事在降温。若你持有，这通常先于价格下跌；若你在观察，这可能是噪音散去后的合理入场环境 —— 但仍需 A2 企稳信号。';
+    acts=[['持仓','留意逻辑是否被证伪','w'],['观察中','噪音减少，判断更清晰','p']];
+  } else {
+    lvl='正常'; lcls='buy';
+    head=chg===null?'低基数：昨日为0，百分比不具意义':'提及量变化 '+(chg>=0?'+':'')+f1(chg)+'%，无异常';
+    body='没有社交噪音干扰，可以按正常流程判断。这是好事 —— 你的框架在安静的股票上更可靠。';
+    acts=[['新开仓','按五层漏斗正常判断','p']];
+  }
+
+  LAST.hype={tk:tk,chg:chg,lvl:lvl};
+  var h='<div class="verdict" style="margin-top:18px"><div class="stamp '+lcls+'"><span class="sv">'+lvl+'</span><span class="sl">HYPE</span></div>'
+    +'<div class="vtext"><div class="vh">'+head+'</div><div class="vb">'+body+'</div></div></div>';
+  for(var i=0;i<acts.length;i++) h+=kv(acts[i][0],acts[i][1],acts[i][2]||'');
+  h+='<div class="alert wait" style="margin-top:12px"><b>永远成立的一条</b>社交热度<b>不能</b>出现在你的基本面陈述里。「Reddit 在讨论」不是商业事实，第 5 道门会直接判你降级观望。</div>';
+  out.innerHTML=h;
+  out.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ═══════════════ ⑧ 完整报告 · 跨层否决 ═══════════════ */
+function buildReport(){
+  var out=document.getElementById('r-out'),M=LAST.market,G=LAST.gates,P=LAST.port,S=LAST.sell,I=LAST.intel,H=LAST.hype;
+  var requested=val('r-tk').toUpperCase(), tk=(G&&G.tk)||requested||'（未指定）', dt=val('r-date')||(G&&G.date)||(M&&M.date)||'';
+  var incomplete=[],vetoes=[],warnings=[];
+  if(!M)incomplete.push('市场层未执行'); if(!G)incomplete.push('个股闸门未执行'); if(!P)incomplete.push('组合层未执行'); if(!S)incomplete.push('持仓层未执行'); else if(!S.complete)incomplete.push('持仓监控关键字段未完整');
+  if(G&&requested&&requested!==G.tk)incomplete.push('报告代码 '+requested+' 与个股层 '+G.tk+' 不一致');
+  if(G&&P&&P.tk!==G.tk)incomplete.push('组合层代码 '+P.tk+' 与个股层 '+G.tk+' 不一致');
+  if(M&&!fresh(M.date,RULES.marketFreshDays))incomplete.push('市场数据过期'); if(G&&!fresh(G.date,RULES.stockFreshDays))incomplete.push('个股数据过期'); if(P&&P.status==='incomplete')incomplete.push('组合数据不完整');
+  if(P&&P.status==='stop')vetoes.push('组合层硬否决'); if(P&&P.status==='wait')warnings.push('组合层仍有风险警告');
+  if(M&&M.riskMultiplier===0)vetoes.push('市场层禁止新增风险 · '+M.head); if(G&&G.verdict==='不买')vetoes.push('个股闸门硬否决'); if(G&&G.verdict==='观望')warnings.push('个股层仍为观望');
+  var boardTop=[val('sc-s1'),val('sc-s2'),val('sc-s3')].map(function(x){return x.toUpperCase()}).filter(Boolean), bad=(val('sc-bad').toUpperCase().match(/[A-Z]{2,6}/g)||[]),boardDate=val('sc-date');
+  if(boardTop.length<3)incomplete.push('板块Top3未完整填写');
+  if(!boardDate||!fresh(boardDate,RULES.sectorFreshDays))incomplete.push('板块排名日期缺失或过期');
+  if(G){if(!G.secetf)incomplete.push('个股所属板块ETF未填'); else if(bad.indexOf(G.secetf)>=0)vetoes.push('所属板块 '+G.secetf+' 在黑名单'); else if(boardTop.length===3&&boardTop.indexOf(G.secetf)<0)warnings.push('所属板块 '+G.secetf+' 不在本月Top3，但也未进黑名单');}
+  var urgent=0; if(S&&S.rows)S.rows.forEach(function(r){if(r.worst==='s')urgent++}); if(urgent)vetoes.push(urgent+' 个现有持仓触发强制风险处理；先清理旧仓再建新仓');
+  if(I&&I.tk!==tk)warnings.push('内部人数据属于 '+I.tk+'，已从 '+tk+' 判定中剔除');
+  if(H&&H.tk!==tk)warnings.push('社交热度属于 '+H.tk+'，已从 '+tk+' 判定中剔除');
+  if(I&&I.tk===tk&&I.score<0)vetoes.push('同标的内部人信号为反向证据');
+  if(H&&H.tk===tk&&H.lvl==='过热')warnings.push('同标的社交热度过热，只作为风险警告，不单独一票否决');
+
+  var final='观望',fcls='watch',fhead='条件未齐',riskMult=M?M.riskMultiplier:0;
+  if(incomplete.length){final='数据不完整';fcls='no';fhead='Fail Closed · '+incomplete.length+' 项关键缺口';}
+  else if(vetoes.length){final='不买';fcls='no';fhead='跨层否决 · '+vetoes.length+' 项';}
+  else if(G.verdict!=='买入'){final='观望';fcls='watch';fhead='个股层未达到 BUY';}
+  else if(P.status!=='pass'){final='观望';fcls='watch';fhead='组合层未完全通过';}
+  else if(riskMult<1){final='小仓';fcls='watch';fhead='全层通过，但市场风险倍率 '+riskMult;}
+  else{final='买入';fcls='buy';fhead='V4 全层一致通过';}
+
+  var h='<section><h2>'+esc(tk)+' · V4 完整报告</h2><div class="sub">'+(dt?'日期 '+esc(dt):'日期 UNKNOWN')+' · '+(G?esc(G.analysisId):'无 Analysis ID')+'</div><div class="verdict"><div class="stamp '+fcls+'"><span class="sv">'+final+'</span><span class="sl">FINAL V4</span></div><div class="vtext"><div class="vh">'+fhead+'</div><div class="vb">只有「买入 / 小仓」才生成可执行股数；数据不完整绝不放行。</div></div></div>';
+  if(incomplete.length){h+='<h3>关键数据缺口</h3>';incomplete.forEach(function(x){h+='<div class="alert stop"><b>DATA</b>'+esc(x)+'</div>'});}
+  if(vetoes.length){h+='<h3>跨层否决</h3>';vetoes.forEach(function(x){h+='<div class="alert stop"><b>VETO</b>'+esc(x)+'</div>'});}
+  if(warnings.length){h+='<h3>风险警告</h3>';warnings.forEach(function(x){h+='<div class="alert wait"><b>WARN</b>'+esc(x)+'</div>'});}
+  h+='<h3>层级状态</h3>'+kv('市场',M?M.light+' · risk×'+M.riskMultiplier:'未执行',M&&M.riskMultiplier>0?'p':'s')+kv('板块',G&&G.secetf?G.secetf:'UNKNOWN',G&&G.secetf?'':'s')+kv('个股',G?G.verdict:'未执行',G&&G.verdict==='买入'?'p':G&&G.verdict==='观望'?'w':'s')+kv('组合',P?P.status:'未执行',P&&P.status==='pass'?'p':P&&P.status==='wait'?'w':'s')+kv('现有持仓',S?(urgent?urgent+'个强制处理':'无强制处理'):'未执行',S&&!urgent?'p':'s');
+
+  if(G&&(final==='买入'||final==='小仓')){
+    var finalShares=G.shares, capVal=P.suggest; if(capVal<G.posVal)finalShares=Math.floor(capVal/G.px); if(riskMult<1)finalShares=Math.floor(finalShares*riskMult); var finalVal=finalShares*G.px, plannedLoss=finalShares*(G.px-G.stop);
+    h+='<h3>可执行计划</h3>'+kv('入场','$'+f2(G.px),'')+kv('结构止损','$'+f2(G.stop),'s')+kv('目标','$'+f2(G.tg),'p')+kv('R值',f1(G.R),'p')+kv('最终股数',finalShares+' 股','')+kv('最终市值','$'+finalVal.toFixed(0),'')+kv('计划内止损损失','$'+plannedLoss.toFixed(0)+'（非最大亏损）','w')+'<div class="alert wait"><b>Gap Risk</b>止损价不是成交保证。财报、监管、事故等跳空时，实际损失可能显著大于计划内止损损失。</div>';
+  } else h+='<h3>交易计划</h3><div class="alert stop"><b>当前不可执行</b>最终状态不是 BUY/小仓，因此不输出可下单股数。</div>';
+  var todo=[]; incomplete.forEach(function(x){todo.push('补齐：'+x)}); warnings.forEach(function(x){todo.push('复核：'+x)}); if(G&&!G.inv)todo.push('补写证伪条件'); if(!todo.length)todo.push('下单前用券商实时报价复核价格，并确认止损/事件风险。');
+  h+='<h3>下一步</h3>';todo.forEach(function(x,i){h+='<div class="alert wait"><b>'+(i+1)+'</b>'+esc(x)+'</div>'});
+  h+='<textarea class="copybox" id="r-text" readonly style="min-height:260px">'+esc(reportText(tk,dt,final,fhead,vetoes,M,G,P,S,(I&&I.tk===tk)?I:null,(H&&H.tk===tk)?H:null,todo))+'</textarea><button class="mini" style="margin-top:10px" onclick="copyBox(\'r-text\',this)">复制纯文本报告</button> <button class="mini" style="margin-top:10px" onclick="window.print()">打印 / 存为 PDF</button></section>';
+  out.innerHTML=h;out.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function reportText(tk,dt,final,fhead,vetoes,M,G,P,S,I,H,todo){
+  var L=[];
+  L.push('════ '+tk+' 五层分析报告 · '+(dt||'日期未填')+' ════');
+  L.push('');
+  L.push('【最终判定】'+final+' —— '+fhead.replace(/<[^>]+>/g,''));
+  if(vetoes.length){ L.push('否决条款：'); for(var i=0;i<vetoes.length;i++) L.push('  '+(i+1)+'. '+vetoes[i].replace(/<[^>]+>/g,'')); }
+  L.push('');
+  L.push('第0层 市场：'+(M?M.light+' · '+M.head:'未执行'));
+  L.push('第1层 板块：'+([val('sc-s1'),val('sc-s2'),val('sc-s3')].filter(Boolean).join(' / ')||'未填'));
+  if(G){
+    L.push('第2层 个股：'+(G.entry||'不属于A1/A2')+' · 偏离度 '+(G.dev>=0?'+':'')+f1(G.dev)+'% · 闸门判定 '+G.verdict);
+    L.push('        基本面：'+(G.thesis||'未写'));
+    L.push('        证伪条件：'+(G.inv||'未填'));
+  } else L.push('第2层 个股：未执行');
+  L.push('第3层 组合：'+(P?'拟投 $'+P.amt.toFixed(0)+' → 建议 $'+P.suggest.toFixed(0)+' · 最高相关性 '+(P.maxCor>=0.8?'>0.7 加仓':P.maxCor>=0.6?'0.5-0.7':'<0.5 真分散'):'未执行'));
+  if(G&&G.verdict==='买入'){
+    var fs=G.shares; if(P&&P.suggest<G.posVal) fs=Math.floor(P.suggest/G.px);
+    L.push('第4层 计划：入场 $'+f2(G.px)+' / 止损 $'+f2(G.stop)+' / 目标 $'+f2(G.tg)+' / R='+f1(G.R)+' / '+fs+' 股 / 计划内止损损失 $'+(fs*(G.px-G.stop)).toFixed(0));
+  } else L.push('第4层 计划：无');
+  if(I) L.push('情报 内部人：'+I.lvl+'（'+I.n+' 人 · $'+(I.amt/1000).toFixed(0)+'k）');
+  if(H) L.push('情报 社交热度：'+H.lvl+'（'+(H.chg===null?'低基数':(H.chg>=0?'+':'')+f1(H.chg)+'%')+'）');
+  if(S&&S.rows) for(var i=0;i<S.rows.length;i++) L.push('持仓 '+S.rows[i].t+'：'+S.rows[i].alerts.join(' / '));
+  L.push('');
+  L.push('【下一步】');
+  for(var i=0;i<todo.length;i++) L.push('  '+(i+1)+'. '+todo[i].replace(/<[^>]+>/g,''));
+  L.push('');
+  L.push('注：所有价格须在下单前用 moomoo 复核。本报告由规则引擎生成，不含任何预测。');
+  return L.join('\n');
+}
+
+/* ═══════════════ 初始化 ═══════════════ */
+drawRows();
+drawCorr();
+showChecklist();
+</script>
+
+</body>
+</html>
