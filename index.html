@@ -201,6 +201,7 @@ button.auto:hover{border-color:var(--info)}
   <button onclick="tab('buy',this)">⑥ 买卖</button>
   <button onclick="tab('sell',this)">⑦ 持仓</button>
   <button onclick="tab('report',this)">⑧ 报告</button>
+  <button onclick="tab('manual',this)">⑨ 手册</button>
 </nav>
 <div id="p-market" class="panel on">
 
@@ -247,13 +248,14 @@ button.auto:hover{border-color:var(--info)}
 
 <section>
   <h2>数据源 · 3 分钟路线</h2>
+  <div class="sub">每张卡片下面都写了「填本页哪个框」。<b>完全看不懂这些网站？先去「⑨ 手册」页</b>，那里有逐步点击路径和每个数字的含义。</div>
   <div class="links">
-    <a href="https://www.tradingview.com/chart/?symbol=SPY" target="_blank" rel="noopener"><div class="ln">SPY 与 HYG 均线 →</div><div class="ld">加 SMA(150) 当 30 周线、SMA(250) 当 50 周线，两个代码各看一次</div></a>
-    <a href="https://edition.cnn.com/markets/fear-and-greed" target="_blank" rel="noopener"><div class="ln">CNN Fear &amp; Greed →</div><div class="ld">首页大表盘，读中间那个数</div></a>
-    <a href="https://www.aaii.com/sentimentsurvey" target="_blank" rel="noopener"><div class="ln">AAII 散户情绪 →</div><div class="ld">每周四更新，读 Bullish 那一栏</div></a>
-    <a href="https://www.naaim.org/programs/naaim-exposure-index/" target="_blank" rel="noopener"><div class="ln">NAAIM 敞口指数 →</div><div class="ld">专业管理人实际仓位，每周三更新</div></a>
-    <a href="https://fred.stlouisfed.org/series/SOFR" target="_blank" rel="noopener"><div class="ln">FRED · SOFR →</div><div class="ld">和联邦基金利率上限比，差 15bp 以上且持续 = 流动性紧张</div></a>
-    <a href="https://www.cboe.com/tradable_products/vix/" target="_blank" rel="noopener"><div class="ln">VIX →</div><div class="ld">或直接在 TradingView 搜 VIX</div></a>
+    <a href="https://www.tradingview.com/chart/?symbol=SPY" target="_blank" rel="noopener"><div class="ln">SPY 与 HYG 均线 →</div><div class="ld">加 SMA(150) 当 30 周线、SMA(250) 当 50 周线，两个代码各看一次<br><b>→ 填本页「大势」与「信用」共 4 个框</b></div></a>
+    <a href="https://edition.cnn.com/markets/fear-and-greed" target="_blank" rel="noopener"><div class="ln">CNN Fear &amp; Greed →</div><div class="ld">首页大表盘，读中间那个数<br><b>→ 填本页「CNN Fear &amp; Greed」</b></div></a>
+    <a href="https://www.aaii.com/sentimentsurvey" target="_blank" rel="noopener"><div class="ln">AAII 散户情绪 →</div><div class="ld">每周四更新，读 Bullish 那一栏<br><b>→ 填本页「AAII 多头 %」</b></div></a>
+    <a href="https://www.naaim.org/programs/naaim-exposure-index/" target="_blank" rel="noopener"><div class="ln">NAAIM 敞口指数 →</div><div class="ld">专业管理人实际仓位，每周三更新<br><b>→ 填本页「NAAIM」（选填）</b></div></a>
+    <a href="https://fred.stlouisfed.org/series/SOFR" target="_blank" rel="noopener"><div class="ln">FRED · SOFR →</div><div class="ld">和联邦基金利率上限比，差 15bp 以上且持续 = 流动性紧张<br><b>→ 填本页「SOFR vs 联邦基金上限」下拉（选填）</b></div></a>
+    <a href="https://www.cboe.com/tradable_products/vix/" target="_blank" rel="noopener"><div class="ln">VIX →</div><div class="ld">或直接在 TradingView 搜 VIX<br><b>→ 填本页「VIX」</b></div></a>
   </div>
   <div class="hint">建议固定在周末做一次，写在纸上。周中除非出现暴跌或暴涨，不必重跑 —— 频繁看情绪指标本身就是情绪化的表现。</div>
 </section>
@@ -303,18 +305,12 @@ button.auto:hover{border-color:var(--info)}
 
 <section>
   <h2>粗筛自查表</h2>
-  <div class="sub">对每一只候选逐条打勾。任一条不过即淘汰，不解释、不例外。</div>
-  <table>
-    <thead><tr><th style="width:34px">#</th><th>指标</th><th style="width:110px">门槛</th><th>在哪看</th></tr></thead>
-    <tbody>
-      <tr><td class="n">0</td><td>月线 / 200 日线方向</td><td class="n">向上</td><td>StockCharts 月线图，肉眼看斜率</td></tr>
-      <tr><td class="n">1</td><td>TTM EPS（实际报出）</td><td class="n">&gt; 0</td><td>StockAnalysis · 不看 Forward</td></tr>
-      <tr><td class="n">2</td><td>60 自然日涨幅</td><td class="n">&lt; 30%</td><td>Finviz Perf 3M 近似</td></tr>
-      <tr><td class="n">3</td><td>距 30 周 MA 距离</td><td class="n">≤ 15%</td><td>TradingView 加 150 日 SMA</td></tr>
-      <tr><td class="n">4</td><td>距 52 周低点</td><td class="n">&gt; 20%</td><td>Finviz 52W Range</td></tr>
-    </tbody>
-  </table>
-  <div class="hint">30 周 MA ≈ 150 日 SMA。TradingView 免费版直接加一条 SMA(150) 即可，不必换周线。</div>
+  <div class="sub">对每一只候选逐条打勾。<b>任一条不过即淘汰</b>，不解释、不例外。跑完一只按「重置」再跑下一只。</div>
+  <div class="f" style="margin-bottom:14px;max-width:280px"><label>正在检查哪一只</label><input id="ck-tk" placeholder="MU" autocomplete="off" oninput="runCheck()"></div>
+  <div id="ck-list"></div>
+  <div id="ck-out"></div>
+  <button class="mini" style="margin-top:12px" onclick="resetCheck()">重置，换下一只</button>
+  <div class="hint">30 周 MA ≈ 150 日 SMA。TradingView 免费版直接加一条 SMA(150) 即可，不必换周线。<br>不确定去哪里看这些数字？→ 打开「⑨ 手册」页，每一条都有点击路径。</div>
 </section>
 
 </div>
@@ -614,6 +610,247 @@ button.auto:hover{border-color:var(--info)}
 <div id="r-out"></div>
 
 </div>
+<div id="p-manual" class="panel">
+
+<section>
+  <h2>使用手册 · 每个数字从哪来，填到哪去</h2>
+  <div class="sub">这一页是给「不是财经从业者」写的。每个网站都写清楚：<b>点哪里 → 看哪个数 → 填到本站哪个框 → 这个数意味着什么</b>。<br>英文界面名称用 <code>等宽字体</code> 标出，你在网页上照着找同样的字就行。</div>
+
+  <h3>一句话总览</h3>
+  <table>
+    <thead><tr><th style="width:120px">你要的数</th><th style="width:130px">去哪个网站</th><th>填到本站哪里</th></tr></thead>
+    <tbody>
+      <tr><td>SPY / HYG 价格与均线</td><td>TradingView</td><td>① 市场 · 大势 / 信用</td></tr>
+      <tr><td>VIX</td><td>TradingView</td><td>① 市场 · 情绪</td></tr>
+      <tr><td>AAII 多头 %</td><td>aaii.com</td><td>① 市场 · 情绪</td></tr>
+      <tr><td>Fear &amp; Greed</td><td>CNN</td><td>① 市场 · 情绪</td></tr>
+      <tr><td>NAAIM</td><td>naaim.org</td><td>① 市场 · 情绪（选填）</td></tr>
+      <tr><td>SOFR 利差</td><td>FRED</td><td>① 市场 · 信用（选填）</td></tr>
+      <tr><td>板块 Top 3</td><td>StockCharts RRG</td><td>② 板块 · 本月 Top 3</td></tr>
+      <tr><td>候选股票名单</td><td>Finviz Screener</td><td>② 板块 · 粗筛自查表</td></tr>
+      <tr><td>TTM PE / EPS</td><td>StockAnalysis</td><td>④ 个股 · TTM PE ／ ⑥ 买卖 · EPS</td></tr>
+      <tr><td>个股价格 / 均线 / 涨幅</td><td>TradingView 或本站自动抓</td><td>⑥ 买卖 · 各字段</td></tr>
+      <tr><td>内部人买入</td><td>OpenInsider</td><td>③ 情报 · 内部人评分</td></tr>
+      <tr><td>Reddit 提及量</td><td>ApeWisdom</td><td>③ 情报 · 热度检测</td></tr>
+      <tr><td>IV Rank</td><td>Barchart</td><td>不填表，卖期权前自己看</td></tr>
+      <tr><td>财报日期</td><td>Market Chameleon</td><td>不填表，确认距财报 ≥14 天</td></tr>
+    </tbody>
+  </table>
+  <div class="hint">前三步（市场 / 个股 / 相关性）本站有「自动抓」按钮，正常情况不用手填。<b>手册的用处是：自动抓失败时你知道去哪补，以及自动抓回来的数你看得懂。</b></div>
+</section>
+
+<section>
+  <h2>① TradingView · 最常用，先学会这一个</h2>
+  <div class="sub">网址：tradingview.com　｜　免费账号即可，不用付费版</div>
+
+  <h3>怎么加均线（30 周 MA / 200 日线）</h3>
+  <table>
+    <thead><tr><th style="width:30px">步</th><th>操作</th><th>你会看到</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1</td><td>顶部搜索框输入代码，例如 <code>SPY</code>，回车</td><td>一张日线图</td></tr>
+      <tr><td class="n">2</td><td>图表上方工具栏点 <code>Indicators</code>（指标）</td><td>弹出搜索框</td></tr>
+      <tr><td class="n">3</td><td>输入 <code>Moving Average Simple</code>，点第一个结果</td><td>图上多了一条线，默认 9 日</td></tr>
+      <tr><td class="n">4</td><td>鼠标移到图<b>左上角</b>那行小字（写着 <code>MA 9</code>），点齿轮 <code>Settings</code></td><td>设置面板</td></tr>
+      <tr><td class="n">5</td><td><code>Length</code> 改成 <b>150</b>，确定</td><td>这条就是 30 周 MA</td></tr>
+      <tr><td class="n">6</td><td>重复 2–5，<code>Length</code> 填 <b>200</b></td><td>这条是 200 日线</td></tr>
+    </tbody>
+  </table>
+  <div class="alert pass"><b>为什么是 150 不是 210</b>一周有 5 个交易日，30 周 × 5 = 150 个交易日。所以日线图上的 SMA(150) 就等于周线图上的 30 周均线，不用切换周期。</div>
+
+  <h3>怎么读出本站要的三个数</h3>
+  <table>
+    <thead><tr><th style="width:150px">本站字段</th><th>在 TradingView 怎么拿</th></tr></thead>
+    <tbody>
+      <tr><td><b>SPY 现价</b></td><td>图表右侧价格轴上高亮的那个数，或左上角 <code>C</code>（Close）后面的数</td></tr>
+      <tr><td><b>SPY 30 周 MA</b></td><td>左上角那行 <code>MA 150</code> 后面跟的数字</td></tr>
+      <tr><td><b>SPY 30 周 MA 方向</b></td><td><b>看线本身，不看价格。</b>把图缩小到近半年：线整体往右上 = 向上；往右下 = 向下；横着走 = 走平</td></tr>
+      <tr><td><b>HYG 现价 / 50 周 MA</b></td><td>搜索框换成 <code>HYG</code>，把 Length 改成 <b>250</b>（50 周 × 5）</td></tr>
+      <tr><td><b>VIX</b></td><td>搜索框输入 <code>VIX</code>，读当前价，不需要均线</td></tr>
+    </tbody>
+  </table>
+  <div class="alert wait"><b>最容易搞错的一点</b>「30 周 MA 方向」问的是<b>均线自己</b>的斜率，不是价格在均线上方还是下方。价格可以在均线上方，但均线仍在向下——那是反弹，不是趋势。这两件事分开填，本站会自己组合判断。</div>
+</section>
+
+<section>
+  <h2>② StockAnalysis · 查 TTM PE 与 EPS</h2>
+  <div class="sub">网址：stockanalysis.com/stocks/<b>代码</b>/financials/　｜　把「代码」换成 intc、nvda 等</div>
+
+  <h3>点击路径</h3>
+  <div class="alert pass"><b>路径</b><code>stockanalysis.com</code> → 顶部搜索框输代码 → 页面标签栏点 <code>Financials</code> → 一直往下拉到最后一块 <code>Valuation</code>（估值）</div>
+
+  <h3>你要看的是这一行</h3>
+  <table>
+    <thead><tr><th style="width:120px">表里的行</th><th style="width:80px">要不要</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>PE Ratio</code></td><td class="n" style="color:var(--pass)"><b>要这个</b></td><td>这就是 TTM PE。看 <code>Current</code> 那一列</td></tr>
+      <tr><td><code>Forward PE</code></td><td class="n" style="color:var(--stop)"><b>绝对不要</b></td><td>这是分析师对<b>未来</b>盈利的预测，不是已经报出的事实</td></tr>
+      <tr><td><code>P/FCF Ratio</code></td><td class="n">不用</td><td>自由现金流倍数，本站不收</td></tr>
+      <tr><td><code>PS Ratio</code></td><td class="n">不用</td><td>市销率</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert stop"><b>🔴 看到「–」怎么办 —— 这是最关键的一条</b>
+    如果 <code>PE Ratio</code> 的 <code>Current</code> 显示 <b>–</b>（一个短横），<b>那不是网站漏数据，那就是答案</b>：这家公司目前 TTM 净利润是负的，亏损公司算不出 PE。<br><br>
+    正确做法：<b>TTM PE 那一格留空</b>，然后到「⑥ 买卖」页把 <code>TTM EPS</code> 选成 <b>为负 / 亏损</b>。<br><br>
+    <b>错误做法（后果严重）</b>：看到 PE 是「–」，转头把 <code>Forward PE</code> 的数字填进去。这会让系统以为公司在盈利，粗筛第 1 条就放行了一只本该被拦住的亏损股。<br><br>
+    想确认它是不是真亏损：同一页往上拉到 <code>Revenue &amp; Profits</code> 那块，看 <code>Net Income</code>（净利润）和 <code>EPS</code> 的 <code>TTM</code> 列是不是负数。
+  </div>
+
+  <h3>顺便值得看的两块</h3>
+  <div class="alert wait"><b><code>Cash &amp; Debt</code>（现金与债务）</b>看 <code>Net Cash (Debt)</code>。负数越大 = 净负债越多。困境反转型和投机型必看这块。</div>
+  <div class="alert wait"><b><code>Cash Flow &amp; CapEx</code>（现金流与资本开支）</b>看 <code>Free Cash Flow</code>（自由现金流）。它转负说明公司在烧钱扩产，未必是坏事，但要问「烧完之后收得回来吗」。</div>
+</section>
+
+<section>
+  <h2>③ Finviz Screener · 筛股票，含 Wheel 期权池完整路径</h2>
+  <div class="sub">网址：finviz.com　｜　免费账号够用，不需要 Elite</div>
+
+  <h3>界面结构：先看懂这三行</h3>
+  <table>
+    <thead><tr><th style="width:130px">界面上的字</th><th>是什么</th></tr></thead>
+    <tbody>
+      <tr><td><code>Screener</code></td><td>顶部导航栏的一项，「筛选器」，我们全部工作都在这一页</td></tr>
+      <tr><td><code>Descriptive / Fundamental / Technical / News / ETF / All</code></td><td>筛选条件分组的标签。<code>All</code> 是全部条件一起显示。数字气泡（如 <code>Technical 2</code>）表示这一组已经设了 2 个条件</td></tr>
+      <tr><td><code>Reset Filters</code></td><td>清空所有条件，换一批筛选前先按它</td></tr>
+    </tbody>
+  </table>
+
+  <h3>示范：从零手动搭出「Wheel 期权池」</h3>
+  <div class="sub" style="margin-bottom:10px">本站那个链接是把条件预设好了。但你需要知道它做了什么，以及链接失效时怎么自己搭。</div>
+  <table>
+    <thead><tr><th style="width:30px">步</th><th>操作</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1</td><td>打开 <code>finviz.com</code> → 顶部点 <code>Screener</code></td></tr>
+      <tr><td class="n">2</td><td>点 <code>Reset Filters</code> 清空 → 点 <code>All</code> 标签，让所有条件都显示出来</td></tr>
+      <tr><td class="n">3</td><td>找到 <code>Country</code>（国家）→ 下拉选 <b>USA</b></td></tr>
+      <tr><td class="n">4</td><td>找到 <code>Market Cap.</code>（市值）→ 选 <b>+Mid (over $2bln)</b>　<i>小盘股期权流动性差，滑点吃掉利润</i></td></tr>
+      <tr><td class="n">5</td><td>找到 <code>Average Volume</code>（平均成交量）→ 选 <b>Over 300K</b>　<i>成交量太低的期权买卖价差大</i></td></tr>
+      <tr><td class="n">6</td><td>找到 <code>Option/Short</code> → 选 <b>Optionable</b>　<i>这一步最关键：确认这只股票有期权可交易</i></td></tr>
+      <tr><td class="n">7</td><td>找到 <code>Price</code>（价格）→ 选 <b>Under $100</b>　<i>你的规则：期权标的股价 &lt;$100，控制保证金</i></td></tr>
+      <tr><td class="n">8</td><td>切到 <code>Technical</code> 标签 → <code>200-Day Simple Moving Average</code> → 选 <b>Price above SMA200</b></td></tr>
+      <tr><td class="n">9</td><td>同一组 → <code>50-Day Simple Moving Average</code> → 选 <b>Price above SMA50</b></td></tr>
+      <tr><td class="n">10</td><td>结果表格出现在页面下方。点表头的 <code>Ticker</code> 可排序，点任一代码进个股页</td></tr>
+    </tbody>
+  </table>
+  <div class="alert stop"><b>Finviz 筛出来之后，还有三件事它不管</b>
+    ① <b>TTM EPS 为正</b>——Finviz 的 P/E 筛选可以近似，但请回 StockAnalysis 确认<br>
+    ② <b>IV Rank &gt; 20</b>——去 Barchart 查（见下一节）<br>
+    ③ <b>距财报 ≥ 14 天</b>——去 Market Chameleon 查<br>
+    这三条 Finviz 一条都给不了。<b>筛出来的名单只是候选，不是可以直接卖期权的清单。</b>
+  </div>
+
+  <h3>个股页上要看的四个数</h3>
+  <div class="sub" style="margin-bottom:10px">路径：<code>finviz.com</code> → 搜索框输代码 → 进入个股页，看中间那张密密麻麻的表格</div>
+  <table>
+    <thead><tr><th style="width:130px">表格里的字</th><th>中文</th><th>对应本站</th></tr></thead>
+    <tbody>
+      <tr><td><code>52W Range</code></td><td>52 周价格区间</td><td>算「距 52 周低点 %」：(现价−左边那个数)÷左边那个数</td></tr>
+      <tr><td><code>Perf Quart</code></td><td>近一季度涨幅</td><td>近似「60 日涨幅」</td></tr>
+      <tr><td><code>SMA50 / SMA200</code></td><td>距 50/200 日线的百分比</td><td>快速判断趋势位置</td></tr>
+      <tr><td><code>Earnings</code></td><td>下次财报日期</td><td>卖期权前必看，距今须 ≥14 天</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>④ 情绪三件套 · 每周看一次就够</h2>
+
+  <h3>CNN Fear &amp; Greed（恐惧贪婪指数）</h3>
+  <div class="alert pass"><b>路径</b>搜索「CNN Fear and Greed」→ 打开 CNN 那个页面 → 页面最上方一个大表盘，指针中间有个数字（0–100）<br><b>填到</b>① 市场 · <code>CNN Fear &amp; Greed</code><br><b>怎么读</b>&gt;75 极度贪婪（危险）｜25–75 正常｜&lt;25 极度恐慌（若大盘趋势还在，是机会）</div>
+
+  <h3>AAII 散户情绪</h3>
+  <div class="alert pass"><b>路径</b><code>aaii.com/sentimentsurvey</b></code> → 页面上方 <code>This week's results</code> 那一块 → 找 <code>Bullish</code> 后面的百分比<br><b>填到</b>① 市场 · <code>AAII 多头 %</code><br><b>怎么读</b>这是个<b>反向</b>指标：&gt;55% 散户一致看多 = 通常接近中期高点；&lt;25% = 接近底部。历史平均约 37.5%<br><b>更新时间</b>每周四</div>
+
+  <h3>NAAIM 敞口指数</h3>
+  <div class="alert pass"><b>路径</b><code>naaim.org</code> → 顶部 <code>Programs</code> → <code>NAAIM Exposure Index</code> → 看最新一期的数字<br><b>填到</b>① 市场 · <code>NAAIM</code>（选填）<br><b>怎么读</b>专业资金管理人的<b>实际仓位</b>，比 AAII 的「嘴上说」更硬。&gt;110 说明已经加了杠杆，子弹打完了；&lt;40 说明机构大幅撤退<br><b>更新时间</b>每周三</div>
+
+  <h3>FRED · SOFR 利差（选填，看不懂可以跳过）</h3>
+  <div class="alert wait"><b>路径</b><code>fred.stlouisfed.org/series/SOFR</code> 看最新值 → 再开 <code>fred.stlouisfed.org/series/IORB</code> 看最新值 → 两数相减<br><b>填到</b>① 市场 · <code>SOFR vs 联邦基金上限</code>，选「正常」或「持续偏紧」<br><b>怎么判断</b>差值 &gt; 0.15（即 15 个基点）<b>且连续三天如此</b> → 选「持续异常偏紧」；否则选「正常」<br><b>意味着什么</b>银行之间借钱的成本超过了央行给的成本，说明系统里现金紧张。这通常出现在去杠杆之前<br><b>不确定就选「正常」</b>——这是选填项，本站已经用 HYG 做主要的信用判断</div>
+</section>
+
+<section>
+  <h2>⑤ OpenInsider · 内部人买入</h2>
+  <div class="sub">网址：openinsider.com　｜　免费，不用注册</div>
+
+  <h3>查单只股票</h3>
+  <div class="alert pass"><b>路径</b><code>openinsider.com</code> → 顶部搜索框输代码 → 出现一张交易明细表</div>
+
+  <h3>表格每一列的意思</h3>
+  <table>
+    <thead><tr><th style="width:110px">列名</th><th>中文</th><th>怎么用</th></tr></thead>
+    <tbody>
+      <tr><td><code>Trade Date</code></td><td>交易日</td><td>只统计近 90 天的</td></tr>
+      <tr><td><code>Insider Name</code></td><td>内部人姓名</td><td>数有几个<b>不同的人</b>→ 填「买入人数」</td></tr>
+      <tr><td><code>Title</code></td><td>职务</td><td>看有没有 <code>CEO</code> 或 <code>CFO</code> → 填「是否含 CEO/CFO」</td></tr>
+      <tr><td><code>Trade Type</code></td><td><b>交易类型（最重要）</b></td><td><code>P - Purchase</code> = 开放市场真金白银买入 ✅<br><code>S - Sale</code> = 卖出<br><code>M</code> / <code>A</code> = 期权行权、股权授予 ❌</td></tr>
+      <tr><td><code>Price</code></td><td>成交价</td><td>取几笔的大致平均 → 填「内部人平均买入价」</td></tr>
+      <tr><td><code>Value</code></td><td>金额</td><td>把 <code>P</code> 类型的加总 → 填「买入总金额」</td></tr>
+    </tbody>
+  </table>
+  <div class="alert stop"><b>只有 P 算数</b>看到一堆 <code>M</code> 别兴奋，那是高管在兑现期权薪酬，跟他看不看好公司没关系。本站的评分器遇到 <code>M</code> 会直接把整条信号判为「反向」。</div>
+  <div class="alert wait"><b>批量扫描（每周一次）</b>不搜个股，直接看首页左侧这几个现成清单：<br><code>Latest Cluster Buys</code>（多人同期买入，信号最强）<br><code>Latest Insider Purchases $25k+</code>（过滤掉象征性小额）<br><code>Top Insider Purchases of the Week</code>（按金额排序）</div>
+</section>
+
+<section>
+  <h2>⑥ ApeWisdom · Reddit 提及量</h2>
+  <div class="sub">网址：apewisdom.io　｜　免费</div>
+  <div class="alert pass"><b>路径</b><code>apewisdom.io</code> → 左侧选 <code>r/WSB</code> 或 <code>r/stocks</code> → 表格里找你的代码<br><b>要看两列</b><code>Mentions</code>（当前提及量）和 <code>24h</code>（24 小时变化百分比）<br><b>填到</b>③ 情报 · 热度检测。若表格只给了变化百分比没给 24 小时前的数，用「当前提及量 ÷ (1+变化率)」倒推，或点进个股页看历史曲线</div>
+  <div class="alert stop"><b>这个数据的用法和你想的相反</b>提及量暴增<b>不是</b>买入信号。等你在 Reddit 上看到刷屏，你已经是最后一批。本站把它当三件事用：① 过热警示 ② 找证伪线索（去读反方帖，不读看涨帖）③ 卖 covered call 的时机。<br><b>它永远不能写进你的「基本面陈述」</b>——写「Reddit 在讨论」会被第 5 道门判降级观望。</div>
+</section>
+
+<section>
+  <h2>⑦ 卖期权前必查的两个网站</h2>
+
+  <h3>Barchart · IV Rank</h3>
+  <div class="alert pass"><b>路径</b><code>barchart.com/stocks/quotes/代码/volatility-greeks</code> → 找 <code>IV Rank</code> 那一格<br><b>怎么读</b>它表示「当前隐含波动率，在过去一年里排在什么位置」。0% = 一年最低，100% = 一年最高<br><b>你的规则</b>IV Rank &gt; 20 才卖权利金。低于 20 说明期权太便宜，卖了也收不到多少钱，不值得占用保证金和承担风险</div>
+
+  <h3>Market Chameleon · 财报日期</h3>
+  <div class="alert pass"><b>路径</b><code>marketchameleon.com/Overview/代码/</code> → 页面上方会显示 <code>Next Earnings Date</code><br><b>你的规则</b>距离财报 <b>≥ 14 天</b>才能卖权利金。财报是波动率的定时炸弹，卖方在财报前后承担的是不对称风险<br><b>免费版限制</b>每天有查询次数上限，够个人用</div>
+</section>
+
+<section>
+  <h2>⑧ 「生成提示词」那个按钮怎么用</h2>
+  <div class="sub">在「④ 个股」页最下方。很多人不知道它是干什么的。</div>
+
+  <table>
+    <thead><tr><th style="width:30px">步</th><th>操作</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1</td><td>在「④ 个股」页填好代码、现价、30 周 MA、TTM PE、60 日涨幅，以及「你目前的看法」</td></tr>
+      <tr><td class="n">2</td><td>点 <b>生成提示词</b>，下方文本框会出现一大段中文</td></tr>
+      <tr><td class="n">3</td><td>点 <b>复制到剪贴板</b></td></tr>
+      <tr><td class="n">4</td><td>打开 <b>Claude</b>（claude.ai）或 ChatGPT，在对话框里 <b>粘贴，回车</b></td></tr>
+      <tr><td class="n">5</td><td>AI 会按你 v3 框架的完整要求，输出一份带来源、带反方、带把握度的深研报告</td></tr>
+      <tr><td class="n">6</td><td>看完报告，<b>自己判断</b>后回到本站把 EPS、目标价、基本面陈述、证伪条件填进「⑥ 买卖」页</td></tr>
+    </tbody>
+  </table>
+
+  <div class="alert wait"><b>为什么要绕这一圈</b>本站的「④ SEC + AI 深研自动填写」按钮是让服务器替你调 AI，但 Netlify 的函数有 10 秒硬上限，AI 写一份完整报告要 20–40 秒，经常超时（就是你看到的 <code>HTTP 504</code>）。<br><b>提示词这条路没有时间限制</b>，而且你能看到 AI 的完整推理过程、能追问、能反驳。慢一点，但更可靠。</div>
+</section>
+
+<section>
+  <h2>⑨ 常见名词，一句话解释</h2>
+  <table>
+    <thead><tr><th style="width:130px">词</th><th>意思</th></tr></thead>
+    <tbody>
+      <tr><td><b>TTM</b></td><td>Trailing Twelve Months，过去 12 个月的<b>实际</b>数据。和 Forward（预测）相对</td></tr>
+      <tr><td><b>EPS</b></td><td>每股盈利。为负 = 公司在亏钱</td></tr>
+      <tr><td><b>PE</b></td><td>股价 ÷ 每股盈利。亏损公司没有 PE，显示为「–」</td></tr>
+      <tr><td><b>SMA</b></td><td>Simple Moving Average，简单移动平均线</td></tr>
+      <tr><td><b>30 周 MA</b></td><td>= 日线图上的 SMA(150)。本站判断趋势阶段的核心线</td></tr>
+      <tr><td><b>Stage 2 / Stage 4</b></td><td>温斯坦阶段。Stage 2 = 价在 30 周线上方且线向上（可买）；Stage 4 = 价在下方且线向下（绝对不买）</td></tr>
+      <tr><td><b>R 值</b></td><td>(目标价−入场价) ÷ (入场价−止损价)。赚的空间是亏的几倍。本站要求 ≥ 2.0</td></tr>
+      <tr><td><b>A1 / A2 买点</b></td><td>A1 = 突破买点（刚放量突破）；A2 = 回调买点（涨了一段后回踩均线企稳）。两个都不属于 = 禁区，不买</td></tr>
+      <tr><td><b>偏离度</b></td><td>(现价−30周MA) ÷ 30周MA。&gt;+25% 极度贪婪，−5%~+15% 是唯一建仓区</td></tr>
+      <tr><td><b>IV Rank</b></td><td>隐含波动率在过去一年的百分位。卖期权要 &gt;20</td></tr>
+      <tr><td><b>Wheel</b></td><td>你的期权策略：卖 put 收权利金 → 被行权就接股票 → 再卖 covered call</td></tr>
+      <tr><td><b>HYG</b></td><td>高收益债 ETF。它跌破 50 周线通常早于股市下跌，是信用预警</td></tr>
+      <tr><td><b>SOFR</b></td><td>银行间隔夜融资利率。持续高于央行利率 = 系统缺钱</td></tr>
+      <tr><td><b>Form 4 / P / M</b></td><td>内部人交易申报表。P = 开放市场买入（有信号）；M = 期权行权（无信号）</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</div>
 
 </div>
 <script>
@@ -874,12 +1111,32 @@ function tradeCardText(tk,entry,px,stop,tg,R,sh,pv,rr,acct,inv,th,dt){
 }
 
 /* ═══════════════ ③ 卖点监控 ═══════════════ */
-var HOLD=[
+var HOLD_DEFAULT=[
   {t:'INTC', s:50,  c:102},
   {t:'IBIT', s:400, c:36.6},
-  {t:'SPCX', s:140, c:150},
-  {t:'NOK',  s:100, c:15}
+  {t:'SPCX', s:140, c:150}
 ];
+var HOLD_KEY='dt_holdings_v1';
+function loadHold(){
+  try{
+    var raw=localStorage.getItem(HOLD_KEY);
+    if(raw){ var a=JSON.parse(raw); if(Array.isArray(a)) return a; }
+  }catch(e){}
+  return HOLD_DEFAULT.map(function(x){return {t:x.t,s:x.s,c:x.c};});
+}
+function saveHold(){
+  try{
+    localStorage.setItem(HOLD_KEY,JSON.stringify(HOLD.map(function(x){
+      return {t:x.t,s:x.s,c:x.c,p:x.p,m:x.m,x:x.x,md:x.md,mo:x.mo,sec:x.sec,inv:x.inv};
+    })));
+  }catch(e){}
+}
+function resetHold(){
+  if(!confirm('清空当前持仓列表，恢复成 INTC / IBIT / SPCX 三只默认？'))return;
+  try{localStorage.removeItem(HOLD_KEY);}catch(e){}
+  HOLD=loadHold(); drawRows(); drawCorr();
+}
+var HOLD=loadHold();
 function drawRows(){
   var box=document.getElementById('s-rows'); var h='';
   for(var i=0;i<HOLD.length;i++){
@@ -918,9 +1175,12 @@ function syncRows(){
     HOLD[i].md=document.getElementById('h-md-'+i).value; HOLD[i].mo=document.getElementById('h-mo-'+i).value;
     HOLD[i].sec=document.getElementById('h-sec-'+i).checked; HOLD[i].inv=document.getElementById('h-inv-'+i).checked;
   }
+  saveHold();
 }
-function addRow(){ syncRows(); HOLD.push({t:'',s:'',c:''}); drawRows(); }
-function delRow(i){ syncRows(); HOLD.splice(i,1); drawRows(); }
+function addRow(){ syncRows(); HOLD.push({t:'',s:'',c:''}); saveHold(); drawRows(); drawCorr(); }
+function delRow(i){ var nm=HOLD[i]&&HOLD[i].t?HOLD[i].t:'这一行';
+  if(!confirm('确定删除持仓 '+nm+' ？删除后组合层也不会再要求填它的相关性。'))return;
+  syncRows(); HOLD.splice(i,1); saveHold(); drawRows(); drawCorr(); }
 
 function runSell(){
   var acct=num('s-acct')||108000;
@@ -1081,7 +1341,12 @@ function drawCorr(preserve){
     h+='<div class="f" style="margin-bottom:10px"><label>'+esc(t)+' <i>· '+HOLD[i].s+' 股'+(HOLD[i].p?' · 现价 $'+HOLD[i].p:' · 现价 UNKNOWN')+'</i></label>'
       +'<select id="c-cor-'+i+'" data-actual="'+esc(actual||'')+'"><option value="">— UNKNOWN —</option><option value="0.3"'+(ov==='0.3'?' selected':'')+'>低 &lt;0.5 · 真分散</option><option value="0.6"'+(ov==='0.6'?' selected':'')+'>中 0.5–0.7 · 半重叠</option><option value="0.8"'+(ov==='0.8'?' selected':'')+'>高 &gt;0.7 · 等于加仓</option></select>'+(actual?'<div class="hint">自动计算 corr120 = '+f2(parseFloat(actual))+'</div>':'')+'</div>';
   }
-  box.innerHTML=h||'<div class="empty">持仓列表为空，请先到「⑦ 持仓监控」填写</div>';
+  if(h){
+    h+='<div class="hint" style="margin-top:10px">名单不对？<b>这里只是显示，增删要去「⑦ 持仓」页</b>——在那里删掉的标的，本页会同步消失，并且刷新后不会再回来。</div>'
+      +'<button class="mini" style="margin-top:8px" onclick="tab(\'sell\',document.querySelectorAll(\'nav button\')[6])">去 ⑦ 持仓页增删 →</button> '
+      +'<button class="mini" style="margin-top:8px" onclick="resetHold()">恢复默认三只</button>';
+  }
+  box.innerHTML=h||'<div class="empty">持仓列表为空。若你目前空仓，可直接跳过本层；否则请到「⑦ 持仓」页添加。</div>';
 }
 
 function runPort(){
@@ -1283,9 +1548,53 @@ function reportText(tk,dt,final,fhead,vetoes,M,G,P,S,I,H,todo){
   return L.join('\n');
 }
 
+/* ═══════════════ 粗筛勾选表 ═══════════════ */
+var CKITEMS=[
+  {id:0,n:'月线 / 200 日线方向向上',gate:'向上',where:'TradingView 加 SMA(200)，看线本身是往上还是往下',why:'均线向下 = 价值中枢在下移，此时任何买点都是接刀'},
+  {id:1,n:'TTM EPS（实际报出）为正',gate:'> 0',where:'StockAnalysis → Financials → PE Ratio 那一行的 Current。<b>显示「–」就是亏损，不通过</b>；千万别拿 Forward PE 顶替',why:'亏损公司无法用盈利估值，必须改走困境反转或投机路径'},
+  {id:2,n:'60 自然日涨幅低于 30%',gate:'< 30%',where:'Finviz 个股页 → Performance 那块的 Perf Quart（近似 3 个月）',why:'涨太多说明 Stage 2 已走完早期，止损放不下'},
+  {id:3,n:'距 30 周 MA 不超过 15%',gate:'≤ 15%',where:'TradingView 加 SMA(150)，(现价−均线)÷均线',why:'超过 15% 是情绪偏离过大，进回调等待名单'},
+  {id:4,n:'距 52 周低点超过 20%',gate:'> 20%',where:'Finviz 个股页 → 52W Range 那一栏',why:'贴着低点 = 还在下跌趋势里，不是底'}
+];
+function drawCheck(){
+  var h='';
+  for(var i=0;i<CKITEMS.length;i++){
+    var c=CKITEMS[i];
+    h+='<div class="hrow" style="padding:12px"><label class="chk" style="margin:0;align-items:flex-start">'
+      +'<input type="checkbox" id="ck-'+c.id+'" onchange="runCheck()" style="margin-top:4px">'
+      +'<span><b style="font-family:var(--serif)">'+c.n+'</b> <span class="tag">'+c.gate+'</span>'
+      +'<div class="hint" style="margin-top:4px">在哪看：'+c.where+'</div>'
+      +'<div class="hint" style="margin-top:2px;opacity:.8">为什么：'+c.why+'</div></span></label></div>';
+  }
+  document.getElementById('ck-list').innerHTML=h;
+}
+function runCheck(){
+  var tk=(val('ck-tk')||'该标的').toUpperCase(), miss=[], done=0;
+  for(var i=0;i<CKITEMS.length;i++){
+    var e=document.getElementById('ck-'+CKITEMS[i].id);
+    if(e&&e.checked)done++; else miss.push(CKITEMS[i].n);
+  }
+  var out=document.getElementById('ck-out');
+  if(done===CKITEMS.length){
+    out.innerHTML='<div class="verdict" style="margin-top:16px"><div class="stamp buy"><span class="sv">通过</span><span class="sl">SCREEN</span></div>'
+      +'<div class="vtext"><div class="vh">'+esc(tk)+' 五条粗筛全过</div><div class="vb">可以进入「④ 个股」做深研。<b>粗筛通过不等于可以买</b>——它只说明这只股票值得你花时间，买不买由第 ⑥ 层闸门决定。</div></div></div>';
+  }else if(done===0){
+    out.innerHTML='';
+  }else{
+    out.innerHTML='<div class="verdict" style="margin-top:16px"><div class="stamp no"><span class="sv">淘汰</span><span class="sl">SCREEN</span></div>'
+      +'<div class="vtext"><div class="vh">'+esc(tk)+' 还差 '+miss.length+' 条</div><div class="vb">未勾选：'+miss.map(esc).join('；')
+      +'<br><b>粗筛是机械的</b>——差一条就淘汰，不要因为"其他四条都很漂亮"而放行。真正的漏斗价值在于砍得快、砍得狠。</div></div></div>';
+  }
+}
+function resetCheck(){
+  for(var i=0;i<CKITEMS.length;i++){var e=document.getElementById('ck-'+CKITEMS[i].id); if(e)e.checked=false;}
+  setv('ck-tk',''); document.getElementById('ck-out').innerHTML='';
+}
+
 /* ═══════════════ 初始化 ═══════════════ */
 drawRows();
 drawCorr();
+drawCheck();
 showChecklist();
 </script>
 
