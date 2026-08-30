@@ -281,9 +281,9 @@ button.auto:hover{border-color:var(--info)}
       <div class="ln">Wheel 期权池 →</div>
       <div class="ld">有期权链 · 趋势向上。选出后还要自己确认股价 &lt;$100、TTM EPS 为正、IV Rank &gt;20</div>
     </a>
-    <a href="https://stockcharts.com/freecharts/rrg/" target="_blank" rel="noopener">
-      <div class="ln">板块 RRG →</div>
-      <div class="ld">每月跑一次，记下排名前 3 的板块。后 3 名板块的个股一律不看</div>
+    <a href="https://finviz.com/groups.ashx" target="_blank" rel="noopener">
+      <div class="ln">Finviz 板块排名 →</div>
+      <div class="ld">每月跑一次。看 <b>1 MONTH</b> 和 <b>3 MONTH PERFORMANCE</b> 两张条形图，对照下方表格填 Top 3</div>
     </a>
   </div>
   <div class="hint">⚠️ Finviz 偶尔调整参数命名。若链接打开显示"无结果"或报错，把地址栏 <code>f=</code> 后面最末一个条件删掉再试，或直接在 Finviz 界面里手动勾选同名条件。</div>
@@ -293,10 +293,36 @@ button.auto:hover{border-color:var(--info)}
   <h2>本月板块 Top 3</h2>
   <div class="sub">填在这里只有一个用途：<b>逼你在选股之前先确认板块顺风</b>。Layer 4 裁决 6——空缺板块不是买入理由。</div>
   <div class="grid3">
-    <div class="f"><label>第 1 名</label><input id="sc-s1" placeholder="如 XLK"></div>
-    <div class="f"><label>第 2 名</label><input id="sc-s2" placeholder="如 XLV"></div>
-    <div class="f"><label>第 3 名</label><input id="sc-s3" placeholder="如 XLE"></div>
+    <div class="f"><label>第 1 名</label><select id="sc-s1"></select></div>
+    <div class="f"><label>第 2 名</label><select id="sc-s2"></select></div>
+    <div class="f"><label>第 3 名</label><select id="sc-s3"></select></div>
   </div>
+  <div class="hint" style="margin-top:8px">下拉里写的是 Finviz 上显示的<b>英文板块名</b>，选完自动存成 ETF 代码。你不需要记住哪个名字对应哪个代码。</div>
+
+  <h3>Finviz 板块名 → ETF 代码对照</h3>
+  <div class="sub" style="margin-bottom:10px">Finviz 的 <code>groups</code> 页面只显示板块名称，不显示 ETF 代码。这张表就是那座桥。</div>
+  <table>
+    <thead><tr><th>Finviz 上的英文名</th><th style="width:70px">ETF</th><th>中文</th><th style="width:64px">你有敞口吗</th></tr></thead>
+    <tbody>
+      <tr><td><code>Technology</code></td><td class="n">XLK</td><td>科技</td><td style="color:var(--stop)">重仓</td></tr>
+      <tr><td><code>Healthcare</code></td><td class="n">XLV</td><td>医疗</td><td>无</td></tr>
+      <tr><td><code>Financial</code></td><td class="n">XLF</td><td>金融</td><td>无</td></tr>
+      <tr><td><code>Consumer Cyclical</code></td><td class="n">XLY</td><td>可选消费</td><td>无</td></tr>
+      <tr><td><code>Consumer Defensive</code></td><td class="n">XLP</td><td>必需消费</td><td>无</td></tr>
+      <tr><td><code>Communication Services</code></td><td class="n">XLC</td><td>通讯服务</td><td>无</td></tr>
+      <tr><td><code>Energy</code></td><td class="n">XLE</td><td>能源</td><td>无</td></tr>
+      <tr><td><code>Industrials</code></td><td class="n">XLI</td><td>工业</td><td>无</td></tr>
+      <tr><td><code>Basic Materials</code></td><td class="n">XLB</td><td>原材料</td><td>无</td></tr>
+      <tr><td><code>Real Estate</code></td><td class="n">XLRE</td><td>房地产</td><td>无</td></tr>
+      <tr><td><code>Utilities</code></td><td class="n">XLU</td><td>公用事业</td><td>无</td></tr>
+    </tbody>
+  </table>
+  <div class="alert wait" style="margin-top:12px"><b>怎么从两张条形图定出 Top 3</b>
+    Finviz 的 <code>groups</code> 页往下拉，有 <code>1 MONTH PERFORMANCE</code> 和 <code>3 MONTH PERFORMANCE</code> 两张图。<br>
+    · <b>两张图都排前 4</b> → 相当于 RRG 的 Leading，选进 Top 3<br>
+    · <b>3 个月靠后但 1 个月冲到前 4</b> → 相当于 Improving，<b>这类优先选</b>，机会最多<br>
+    · <b>3 个月靠前但 1 个月掉到后 4</b> → 相当于 Weakening，正在退潮，别碰<br>
+    · <b>两张图都排后 4</b> → Lagging，填进黑名单</div>
   <div class="grid" style="margin-top:12px">
     <div class="f"><label>后 3 名（黑名单）</label><input id="sc-bad" placeholder="如 XLRE / XLU / XLP"></div>
     <div class="f"><label>更新日期 <i>· 必填</i></label><input id="sc-date" placeholder="2026-08-29"></div>
@@ -574,6 +600,48 @@ button.auto:hover{border-color:var(--info)}
 
 </div>
 <div id="p-sell" class="panel">
+
+<section style="border-color:var(--stop);border-width:2px">
+  <h2 style="color:var(--stop)">卖点闸门 · 单只标的深查</h2>
+  <div class="sub">下面那张表告诉你「哪几只出了状况」。<b>这一块告诉你「这一只该卖多少股」</b>——具体数字，不是"可以考虑"。<br>
+  回测结论：你的三笔亏损全部发生在卖出环节，不是买入环节。买点闸门拦不住已经在手上的仓位。</div>
+
+  <div class="grid3">
+    <div class="f"><label>代码</label><input id="x-tk" placeholder="SPCX" autocomplete="off" oninput="pullHold()"></div>
+    <div class="f"><label>持有股数</label><input id="x-sh" type="number" step="1" placeholder="140"></div>
+    <div class="f"><label>成本价 <i>$</i></label><input id="x-cost" type="number" step="0.01" placeholder="150"></div>
+    <div class="f"><label>现价 <i>$ · moomoo</i></label><input id="x-px" type="number" step="0.01" placeholder="107"></div>
+    <div class="f"><label>30 周 MA</label><input id="x-ma" type="number" step="0.01" placeholder="125"></div>
+    <div class="f"><label>30 周 MA 方向</label>
+      <select id="x-madir"><option value="">— 未选 —</option><option value="up">向上</option><option value="flat">走平</option><option value="down">向下</option></select></div>
+    <div class="f"><label>月线 / 200 日线方向</label>
+      <select id="x-mo"><option value="">— 未选 —</option><option value="up">向上</option><option value="flat">走平</option><option value="down">向下</option></select></div>
+    <div class="f"><label>入场时定的止损价 <i>$ · 没定过留空</i></label><input id="x-stop" type="number" step="0.01" placeholder=""></div>
+    <div class="f"><label>账户总值 <i>$</i></label><input id="x-acct" type="number" step="1000" value="108000"></div>
+  </div>
+
+  <div style="margin-top:14px">
+    <label class="chk"><input type="checkbox" id="x-inv"> 买入时的核心理由<b>已被证伪</b>（财报打脸、催化剂取消、订单丢失）</label>
+    <label class="chk"><input type="checkbox" id="x-sec"> 所属板块 ETF <b>已跌破</b>自身 30 周 MA</label>
+  </div>
+
+  <div class="alert stop" style="margin-top:16px">
+    <b>下单前必须回答这一题</b>
+    <div style="margin:10px 0">如果你今天<b>完全空仓</b>，手上是现金，你会用现价买入这个数量吗？</div>
+    <select id="x-repurchase" style="max-width:420px">
+      <option value="">— 请选择，这一题不能跳过 —</option>
+      <option value="same">会，会买同样多甚至更多</option>
+      <option value="less">会买，但会买得比现在少</option>
+      <option value="no">不会买</option>
+    </select>
+    <div class="hint" style="margin-top:8px">持有和买入是<b>同一个决定</b>，只是一个需要动手，一个不需要。选「不会买」却继续持有，等于你每天都在主动做一个你不会主动做的决定。</div>
+  </div>
+
+  <div class="f" style="margin-top:12px"><label>若上一题选了「会买得比现在少」，你认为合理股数是多少</label><input id="x-ideal" type="number" step="1" placeholder="100"></div>
+
+  <button class="act" onclick="runSellGate()">跑卖点闸门</button>
+  <div id="x-out"></div>
+</section>
 
 <section>
   <h2>卖点监控 · 四类触发</h2>
@@ -1646,6 +1714,167 @@ function reportText(tk,dt,final,fhead,vetoes,M,G,P,S,I,H,todo){
   return L.join('\n');
 }
 
+/* ═══════════════ 卖点闸门 ═══════════════ */
+function pullHold(){
+  var tk=val('x-tk').toUpperCase(); if(!tk)return;
+  for(var i=0;i<HOLD.length;i++){
+    if(String(HOLD[i].t||'').toUpperCase()===tk){
+      if(HOLD[i].s) setv('x-sh',HOLD[i].s);
+      if(HOLD[i].c) setv('x-cost',HOLD[i].c);
+      if(HOLD[i].p) setv('x-px',HOLD[i].p);
+      break;
+    }
+  }
+}
+function runSellGate(){
+  var out=document.getElementById('x-out');
+  var tk=val('x-tk').toUpperCase(), sh=num('x-sh'), c=num('x-cost'), px=num('x-px');
+  var ma=num('x-ma'), madir=val('x-madir'), mo=val('x-mo'), stp=num('x-stop'), acct=num('x-acct')||108000;
+  var invB=document.getElementById('x-inv').checked, secB=document.getElementById('x-sec').checked;
+  var rep=val('x-repurchase'), ideal=num('x-ideal');
+
+  var miss=[];
+  if(!tk)miss.push('代码'); if(!positive(sh))miss.push('持有股数'); if(!positive(c))miss.push('成本价');
+  if(!positive(px))miss.push('现价'); if(!positive(ma))miss.push('30周MA'); if(!madir)miss.push('30周MA方向');
+  if(!mo)miss.push('月线方向'); if(!rep)miss.push('重新买入自问题');
+  if(miss.length){
+    out.innerHTML='<div class="alert stop" style="margin-top:14px"><b>缺少必填项</b>'+miss.join('、')+'。<b>卖出决策比买入更不能靠印象</b>——缺一项就不给判定。</div>';
+    return;
+  }
+
+  var pnl=(px-c)/c*100, mv=sh*px, pctAcct=mv/acct*100, G=[], sellPct=0, reasons=[];
+  function bump(p,why){ if(p>sellPct){sellPct=p;} reasons.push(why); }
+
+  /* 闸门 1 · 保命卖 */
+  if(stp!==null&&positive(stp)&&px<stp){
+    bump(100,'跌破入场止损');
+    G.push({no:'SELL 1',n:'保命卖 · 跌破入场止损',r:{s:'stop',m:'清仓',d:'现价 <code>$'+f2(px)+'</code> 已跌破你入场时定的止损 <code>$'+f2(stp)+'</code>。<br><b>无条件清仓，不重新评估。</b>止损是入场前签的合约，跌破之后再找理由就是自欺。'}});
+  }else if(stp===null||!positive(stp)){
+    G.push({no:'SELL 1',n:'保命卖 · 无止损可依',r:{s:'wait',m:'缺失',d:'你没有为这笔仓位定过止损价。<br><b>没有止损的持仓，卖出只能靠情绪决定</b> —— 这正是 BTX 和 SPCX 的处境。<br>补救：以 30 周 MA 下方 5% 作为从今天起的止损线，写下来并挂单。'}});
+  }else{
+    G.push({no:'SELL 1',n:'保命卖 · 止损未破',r:{s:'pass',m:'通过',d:'现价 <code>$'+f2(px)+'</code> 仍在止损 <code>$'+f2(stp)+'</code> 上方。'}});
+  }
+
+  /* 闸门 2 · 趋势卖 */
+  if(px<ma&&madir==='down'){
+    bump(50,'Stage 4 确认');
+    G.push({no:'SELL 2',n:'趋势卖 · Stage 4 确认',r:{s:'stop',m:'减半',d:'价 <code>$'+f2(px)+'</code> 跌破 30 周 MA <code>$'+f2(ma)+'</code>，且均线已转向下。<br>Stage 3→4 确认 = <b>至少减 50%</b>。这是硬规则，不是建议。'}});
+  }else if(px<ma){
+    bump(25,'跌破30周MA');
+    G.push({no:'SELL 2',n:'趋势卖 · 已破均线',r:{s:'wait',m:'减25%',d:'已跌破 30 周 MA 但均线尚未转向下。<b>只减不加</b>，先减 25%。若周线连续两周收于均线下方，按 Stage 4 处理再减一半。'}});
+  }else{
+    G.push({no:'SELL 2',n:'趋势卖 · 趋势未破',r:{s:'pass',m:'通过',d:'价在 30 周 MA 上方 <code>+'+f1((px-ma)/ma*100)+'%</code>，均线'+(madir==='up'?'向上':'走平')+'。'}});
+  }
+
+  /* 闸门 3 · 月线 */
+  if(mo==='down'){
+    bump(25,'月线转向下');
+    G.push({no:'SELL 3',n:'月线转向 · 只减不加',r:{s:'stop',m:'减25%',d:'月线／200 日线已转向下 —— <b>价值中枢本身在下移</b>。<br>禁止加仓，禁止卖 put，先减 25%。'}});
+  }else{
+    G.push({no:'SELL 3',n:'月线方向',r:{s:'pass',m:'通过',d:'月线'+(mo==='up'?'向上':'走平')+'，长期资格尚在。'}});
+  }
+
+  /* 闸门 4 · 浮亏硬线 */
+  if(pnl<-25){
+    G.push({no:'SELL 4',n:'浮亏 '+f1(pnl)+'% · 超 25% 硬线',r:{s:'stop',m:'二选一',d:'你的规则：浮亏 &gt;25% 必须输出「重新买入 or 认赔」<b>二选一，禁止再等等</b>。<br>这一题的答案由下面的 SELL 6 给出 —— 它问的正是「你现在会不会买」。'}});
+  }else{
+    G.push({no:'SELL 4',n:'浮亏幅度',r:{s:pnl<0?'wait':'pass',m:(pnl>=0?'+':'')+f1(pnl)+'%',d:pnl<0?'浮亏未达 25% 硬线，但已在亏损区。<b>禁止补仓。</b>':'当前浮盈。'}});
+  }
+
+  /* 闸门 5 · 逻辑证伪 / 板块 / 复杂期 / 仓位 */
+  if(invB){
+    bump(100,'核心逻辑证伪');
+    G.push({no:'SELL 5',n:'逻辑证伪 · 与价格无关',r:{s:'stop',m:'清仓',d:'买入理由已被证伪。<br><b>这一条与价格无关</b>：哪怕现在浮盈，理由消失了就该走。继续持有等于换了个新理由，那是一个新决策，必须重走买点闸门。'}});
+  }
+  if(secB){
+    bump(25,'板块ETF破位');
+    G.push({no:'SELL 5b',n:'板块 ETF 破位',r:{s:'wait',m:'减25%',d:'所属板块 ETF 已跌破自身 30 周 MA。该板块全部持仓降级，暂停任何新增敞口。'}});
+  }
+  if(pnl>20){
+    bump(25,'复杂期止盈');
+    G.push({no:'SELL 5c',n:'复杂期 · 浮盈 '+f1(pnl)+'%',r:{s:'wait',m:'减25%',d:'最大回撤往往紧跟最大盈利（Schwager）。部分止盈或卖 covered call 锁定一段。'}});
+  }
+  if(pctAcct>20){
+    var toCap=Math.ceil(sh-(acct*0.20/px));
+    bump(Math.round(toCap/sh*100),'超单仓上限');
+    G.push({no:'SELL 5d',n:'单仓 '+f1(pctAcct)+'% · 超 20% 上限',r:{s:'stop',m:'减至20%',d:'需卖出 <b>'+toCap+' 股</b>才能回到 20% 上限内。'}});
+  }
+
+  /* 闸门 6 · 重新买入自问（决定性的一门）*/
+  var g6;
+  if(rep==='no'){
+    bump(100,'你自己说不会再买');
+    g6={s:'stop',m:'清仓',d:'<b>你说不会买。</b><br>那么继续持有，就是你每一天都在重新做一个你不会主动做的决定。<br>沉没成本不是理由 —— 市场不知道你的成本价，它也不会因为你亏了钱就还给你。'};
+  }else if(rep==='less'){
+    if(positive(ideal)&&ideal<sh){
+      var cut=sh-ideal, cutPct=Math.round(cut/sh*100);
+      bump(cutPct,'超出你自己认可的仓位');
+      g6={s:'stop',m:'减'+cutPct+'%',d:'你认为合理仓位是 <b>'+ideal+' 股</b>，实际持有 <b>'+sh+' 股</b>。<br>多出的 <b>'+cut+' 股</b>是历史遗留，不是你今天会做的决定。<br><b>这个结论是你给的，不是系统给的。</b>'};
+    }else{
+      g6={s:'wait',m:'待填',d:'你选了「会买得比现在少」，但没填合理股数。请填上 —— 那个数字直接决定该减多少。'};
+    }
+  }else{
+    g6={s:'pass',m:'通过',d:'你说会买同样多。<br>那么请确认：这个理由能通过买点闸门的第 5 道门吗？必须是具体商业事实，不能是「跌这么多了」「总会回来的」。<br>如果写不出来，请回去把答案改成「不会买」。'};
+  }
+  G.push({no:'SELL 6',n:'重新买入自问 · 最诚实的一门',r:g6});
+
+  /* 汇总 */
+  sellPct=Math.min(100,sellPct);
+  var sellSh=Math.round(sh*sellPct/100), keepSh=sh-sellSh;
+  var proceeds=sellSh*px, realized=sellSh*(px-c);
+  var vclass=sellPct>=100?'no':sellPct>0?'watch':'buy';
+  var vtxt=sellPct>=100?'清仓':sellPct>0?'减 '+sellPct+'%':'持有';
+
+  var h='<section style="margin-top:16px"><h2>'+esc(tk)+' · 卖点判定</h2><div class="sub">'
+    +sh+' 股 @ 成本 $'+f2(c)+' · 现价 $'+f2(px)+' · 市值 $'+mv.toFixed(0)+'（'+f1(pctAcct)+'% 账户）· 浮'
+    +(pnl>=0?'盈 +':'亏 ')+f1(pnl)+'%</div><div class="gates">';
+  for(var i=0;i<G.length;i++) h+='<div class="gate '+G[i].r.s+'"><div class="gt"><span class="gno">'+G[i].no+'</span><span class="gname">'+G[i].n+'</span><span class="gmark">'+G[i].r.m+'</span></div><div class="gdetail">'+G[i].r.d+'</div></div>';
+  h+='</div><div class="verdict"><div class="stamp '+vclass+'"><span class="sv">'+vtxt+'</span><span class="sl">SELL GATE</span></div>'
+    +'<div class="vtext"><div class="vh">'+(sellPct>0?'触发 '+reasons.length+' 项，取最严格的一项执行':'本轮无触发')+'</div>'
+    +'<div class="vb">'+(reasons.length?'触发原因：'+reasons.join('；')+'。<br>多项同时触发时取最大减仓比例，不叠加、不折中。':'六道门全部通过。继续持有，每周复核一次。')+'</div></div></div>';
+
+  if(sellPct>0){
+    h+='<div class="card-out"><div class="ch"><span>执行单 · '+esc(tk)+'</span><span>'+vtxt+'</span></div><div class="cb">'
+      +kv('卖出',sellSh+' 股','s')+kv('保留',keepSh+' 股','')
+      +kv('回收现金','约 $'+proceeds.toFixed(0),'')
+      +kv('实现盈亏','$'+realized.toFixed(0),realized>=0?'p':'s')
+      +kv('剩余仓位占比',f1(keepSh*px/acct*100)+'%','')
+      +'</div></div>';
+    if(rep==='less'&&positive(ideal)&&keepSh<ideal){
+      h+='<div class="alert wait" style="margin-top:12px"><b>为什么比你说的还要少</b>'
+        +'你认为合理仓位是 <b>'+ideal+' 股</b>，但闸门只允许留 <b>'+keepSh+' 股</b>。<br>'
+        +'差别来自技术面：'+reasons.join('、')+'。这些是价格给出的信号，不受你对公司的看法影响。<br>'
+        +'<b>多项触发时取最严格的一项，不折中。</b>如果后来趋势修复（重新站上 30 周 MA 且均线转向上），你可以按买点闸门的金字塔规则重新加回去 —— 那时是加仓，不是补仓。</div>';
+    }
+    h+='<div class="alert stop" style="margin-top:12px"><b>执行提醒</b>市价单还是限价单由你定，但<b>今天就下</b>。回测显示你的问题从来不是判断错，是判断对了却没执行。</div>';
+  }
+  h+='</section>';
+  out.innerHTML=h;
+  out.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ═══════════════ 板块下拉 + StockAnalysis 直达 ═══════════════ */
+var SECTORS=[
+ ['XLK','Technology','科技'],['XLV','Healthcare','医疗'],['XLF','Financial','金融'],
+ ['XLY','Consumer Cyclical','可选消费'],['XLP','Consumer Defensive','必需消费'],
+ ['XLC','Communication Services','通讯服务'],['XLE','Energy','能源'],
+ ['XLI','Industrials','工业'],['XLB','Basic Materials','原材料'],
+ ['XLRE','Real Estate','房地产'],['XLU','Utilities','公用事业']
+];
+function fillSectors(){
+  ['sc-s1','sc-s2','sc-s3'].forEach(function(id){
+    var el=document.getElementById(id); if(!el)return;
+    var h='<option value="">— 未选 —</option>';
+    for(var i=0;i<SECTORS.length;i++) h+='<option value="'+SECTORS[i][0]+'">'+SECTORS[i][1]+' · '+SECTORS[i][2]+'（'+SECTORS[i][0]+'）</option>';
+    el.innerHTML=h;
+  });
+}
+function openSA(){
+  var t=(val('ck-tk')||val('b-tk')||val('d-tk')||'').trim().toLowerCase();
+  if(!t){ alert('请先在上面「正在检查哪一只」填入股票代码。'); return; }
+  window.open('https://stockanalysis.com/stocks/'+encodeURIComponent(t)+'/financials/','_blank','noopener');
+}
+
 /* ═══════════════ 加仓审查辅助 ═══════════════ */
 function syncOwn(){
   var box=document.getElementById('own-hint'); if(!box)return;
@@ -1676,7 +1905,7 @@ function syncOwn(){
 /* ═══════════════ 粗筛勾选表 ═══════════════ */
 var CKITEMS=[
   {id:0,n:'月线 / 200 日线方向向上',gate:'向上',where:'TradingView 加 SMA(200)，看线本身是往上还是往下',why:'均线向下 = 价值中枢在下移，此时任何买点都是接刀'},
-  {id:1,n:'TTM EPS（实际报出）为正',gate:'> 0',where:'StockAnalysis → Financials → PE Ratio 那一行的 Current。<b>显示「–」就是亏损，不通过</b>；千万别拿 Forward PE 顶替',why:'亏损公司无法用盈利估值，必须改走困境反转或投机路径'},
+  {id:1,n:'TTM EPS（实际报出）为正',gate:'> 0',where:'<a href="#" onclick="openSA();return false" style="color:var(--struct)"><b>点这里直接打开 StockAnalysis</b></a> → 页面标签点 <code>Financials</code> → 拉到底部 <code>Valuation</code> 区 → 看 <code>PE Ratio</code> 那一行的 <code>Current</code>。<b>显示「–」就是亏损，不通过</b>；千万别拿 <code>Forward PE</code> 顶替',why:'亏损公司无法用盈利估值，必须改走困境反转或投机路径'},
   {id:2,n:'60 自然日涨幅低于 30%',gate:'< 30%',where:'Finviz 个股页 → Performance 那块的 Perf Quart（近似 3 个月）',why:'涨太多说明 Stage 2 已走完早期，止损放不下'},
   {id:3,n:'距 30 周 MA 不超过 15%',gate:'≤ 15%',where:'TradingView 加 SMA(150)，(现价−均线)÷均线',why:'超过 15% 是情绪偏离过大，进回调等待名单'},
   {id:4,n:'距 52 周低点超过 20%',gate:'> 20%',where:'Finviz 个股页 → 52W Range 那一栏',why:'贴着低点 = 还在下跌趋势里，不是底'}
@@ -1720,6 +1949,7 @@ function resetCheck(){
 drawRows();
 drawCorr();
 drawCheck();
+fillSectors();
 showChecklist();
 </script>
 
