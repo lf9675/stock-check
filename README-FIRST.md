@@ -1,173 +1,169 @@
-# Decision Terminal V4.2 FINAL
+# Decision Terminal V4.3 FINAL — 双 AI 兼容版
 
-这是可直接部署到 Netlify 的完整版本。不要只上传 `index.html`，因为自动抓数据和 AI 深研依赖 `netlify/functions/`。
+本版保留 V4.2 的 Fail Closed 安全机制，并把 AI 深研改成 OpenAI / DeepSeek 双兼容。以后切换 AI 不需要改代码，只改 Netlify 环境变量。
 
-## 1. 这版已经做到什么
+## 一、你截图里的 Netlify Build settings 怎么填
 
-### 自动数据
-- SPY / HYG / VIX
-- HY OAS（设置 FRED 后）
-- SOFR / IORB 资金压力（设置 FRED 后）
-- 个股 EOD / 日线
-- 20 / 50 / 150 / 200 日均线
-- 均线方向
-- 20 / 60 自然日涨幅
-- 距 52 周低点（新股则使用上市以来可用区间）
-- 突破与量能
-- 上升趋势持续周数
-- 持仓现价、趋势和 60 / 120 / 252 日收益相关性
+前提：仓库根目录就是本 ZIP 解压后的这些文件：`index.html`、`netlify.toml`、`netlify/functions/...`。
 
-### SEC + AI 深研
-点击“④ SEC + AI 深研自动填写”后：
-- SEC EDGAR / XBRL 先取可验证财务事实
-- AI 再联网核实最新公司资料、财报、IR、新闻
-- 自动尝试填写：
-  - 林奇分类
-  - 板块 ETF
-  - TTM EPS 状态 / TTM PE
-  - 基本面陈述
-  - 证伪条件
-  - 催化剂、风险、反方观点
-  - 目标价（只有至少两个独立依据方向一致时才允许自动填写）
-  - SPEC / 新 IPO：现金跑道、稀释、解禁、融资风险等
-- 所有 AI 研究都会显示可点击来源供人工复核
+请填写：
 
-### Fail Closed 安全机制
-以下任何一项存在问题，最终报告都不能给 BUY：
-- 关键数据 UNKNOWN
-- 数据过期
-- ticker 串台 / 层级 ticker 不一致
-- 板块 Top 3 未完整或过期
-- 组合层未执行
-- 持仓监控未执行或关键字段缺失
-- 目标价只有单一依据
-- 基本面或证伪条件不完整
-- 上层市场 / 组合存在硬否决
+- Base directory：**留空**
+- Build command：**留空**
+- Publish directory：`.`
+- Functions directory：`netlify/functions`
 
-## 2. Netlify 必须设置的环境变量
+本项目是纯静态 HTML + Netlify Functions，不需要 npm build。仓库根目录就是发布目录。
 
-进入：Netlify → Project configuration / Site configuration → Environment variables
+项目根目录的 `netlify.toml` 已写好：
 
-### A. 必须：Twelve Data
-变量名：
+```toml
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+```
+
+因此即使 Netlify UI 与这里不同，根目录的 `netlify.toml` 会作为项目配置生效。为了减少混乱，建议 UI 也按上面填写。
+
+## 二、环境变量怎么填
+
+### 1. 必须：Twelve Data
+
+Key：
 
 `TWELVE_DATA_API_KEY`
 
-用途：行情、均线、涨幅、突破、相关性。
+Value：你的 Twelve Data API Key。
 
-申请：https://twelvedata.com/
+用途：个股、SPY/HYG、均线、涨幅、突破和持仓相关性。
 
-### B. 必须：SEC User-Agent
-变量名：
+### 2. 必须：SEC User-Agent
+
+Key 必须一字不差：
 
 `SEC_USER_AGENT`
 
-值请写成类似：
+Value 例如：
 
 `DecisionTerminal your-real-email@example.com`
 
-SEC 要求自动程序声明 User-Agent。请填写你自己的真实联系邮箱，不要把邮箱写进 GitHub 源码。
+不要写 `SEC User-Agent`，也不要写 `SEC-USER-AGENT`。
 
-### C. 必须（若要 AI 自动深研）：OpenAI API
-变量名：
+### 3. AI 选择器
+
+Key：
+
+`AI_PROVIDER`
+
+Value 只能是：
+
+- `deepseek`：使用 DeepSeek
+- `openai`：使用 OpenAI
+- `auto`：自动选择；如果两个 Key 都有，V4.3 默认优先 OpenAI；只有 DeepSeek Key 时自动用 DeepSeek
+
+如果你主要想用 DeepSeek，建议直接填：
+
+`deepseek`
+
+### 4A. 使用 DeepSeek
+
+Key：
+
+`DEEPSEEK_API_KEY`
+
+Value：你的 DeepSeek API Key。
+
+可选模型变量：
+
+`DEEPSEEK_MODEL`
+
+默认值：
+
+`deepseek-v4-flash`
+
+如果只使用 DeepSeek，`OPENAI_API_KEY` 可以完全不填。
+
+### 4B. 使用 OpenAI
+
+Key：
 
 `OPENAI_API_KEY`
 
-默认模型：`gpt-5.6-terra`
+Value：你的 OpenAI API Key。
 
-可选变量：
+可选模型变量：
 
 `OPENAI_MODEL`
 
-例如：
+默认值：
 
 `gpt-5.6-terra`
 
-注意：ChatGPT Plus 与 OpenAI API 是两套独立计费系统。Plus 不自动包含 API 用量，需要在 OpenAI API 平台单独开通计费。
+如果只使用 OpenAI，`DEEPSEEK_API_KEY` 可以不填。
 
-### D. 建议：FRED
-变量名：
+### 5. 建议：FRED
+
+Key：
 
 `FRED_API_KEY`
 
-用途：VIX、SOFR、IORB、HY OAS。没有 FRED 时，系统仍能运行，但信用/流动性层的数据会减少。
+Value：你的 FRED API Key。
 
-申请：https://fred.stlouisfed.org/docs/api/api_key.html
+用途：VIX、SOFR、IORB、HY OAS 等宏观数据。
 
-## 3. 最简单部署步骤
+## 三、最省钱的推荐填写法
 
-1. 解压 `decision-terminal-v4.2-final.zip`。
-2. 把解压后的全部内容上传到你的 GitHub 仓库根目录。目录结构必须保留：
+如果你决定用 DeepSeek：
 
 ```text
-index.html
-netlify.toml
-netlify/
-  functions/
-    _market-utils.mjs
-    _sec-utils.mjs
-    market-data.mjs
-    stock-data.mjs
-    ai-research.mjs
-README-FIRST.md
-TEST-REPORT.md
+TWELVE_DATA_API_KEY = 你的 Twelve Data key
+SEC_USER_AGENT      = DecisionTerminal 你的真实邮箱
+AI_PROVIDER         = deepseek
+DEEPSEEK_API_KEY    = 你的 DeepSeek key
+FRED_API_KEY        = 你的 FRED key（建议）
 ```
 
-3. 在 Netlify 设置上面的环境变量。
-4. 重新 Deploy。
-5. 打开网站后先输入 ticker，例如 `NVDA`。
-6. 按顺序点击顶部四个按钮：
-   - ① 自动抓市场数据
-   - ② 自动抓个股数据
-   - ③ 自动算持仓相关性
-   - ④ SEC + AI 深研自动填写
+这种情况下不需要 `OPENAI_API_KEY`。
 
-## 4. 每次分析还需要你做什么
+## 四、以后想换 OpenAI 怎么办
 
-自动化以后，通常只剩少量真正应该由你确认的项目：
+不用改 GitHub，不用改 HTML。
 
-1. 每月更新一次板块 Top 3 / 黑名单。
-2. 在组合页确认加入候选后板块总敞口 ≤35%。
-3. A2 回调买点的“企稳信号”仍建议你看图确认，不让 AI 单独决定。
-4. 现有持仓原先写死的止损价要由你保留。系统不能事后替你发明入场止损。
-5. 下单前用 moomoo / 券商实时报价复核价格；本系统行情主要用于研究和规则计算，不保证等同于你的实际成交报价。
+Netlify 把：
 
-## 5. 新 IPO / 亏损高成长股（SPEC）
+`AI_PROVIDER = deepseek`
 
-如果 AI 或你把公司分类为“亏损投机型 / SPEC”：
+改为：
 
-- EPS <0 不再自动淘汰。
-- 历史不足 150 日时可使用 50 日趋势作为代理。
-- 现金跑道 <9个月：STOP。
-- 现金跑道 9–18个月：WAIT。
-- 近12月稀释 >50%：STOP。
-- 稀释 25–50%：WAIT。
-- 30天内存在已知大规模解禁：WAIT。
-- 未来12月融资风险高：WAIT。
-- SPEC 单仓上限：10%账户。
-- SPEC 单笔计划风险上限：1%。
+`AI_PROVIDER = openai`
 
-这些规则优先目标是“活下来”，不是预测股价。
+并增加 `OPENAI_API_KEY`，重新 Deploy 即可。
 
-## 6. 一个重要原则
+## 五、V4.3 AI 接口逻辑
 
-页面中的绿色“个股层买入”并不等于可以下单。
+- OpenAI：`https://api.openai.com/v1/responses`
+- DeepSeek：`https://api.deepseek.com/responses`
+- 两者都使用 Responses API + `web_search`
+- 前端永远拿不到 API Key；Key 只存在 Netlify Functions 环境变量中
+- AI 研究失败时保持 UNKNOWN，不自动放行
+- AI 返回结果会显示实际 provider / model，方便你确认当前到底用了哪一家
 
-只有第⑧页最终报告出现：
+## 六、部署后第一次测试
 
-- `买入`，或
-- `小仓`
+1. 打开网站。
+2. 输入 `NVDA`。
+3. 点击“① 自动抓市场数据”。
+4. 点击“② 自动抓个股数据”。
+5. 点击“④ SEC + AI 深研自动填写”。
+6. 页面成功时会显示类似：
 
-才代表所有已要求层级通过。出现 `数据不完整 / 不买 / 观望` 都不能按系统规则执行新开仓。
+`AI 提供商：deepseek / deepseek-v4-flash`
 
-## 7. API 故障时
+或：
 
-如果某个 API 抓取失败：
+`AI 提供商：openai / gpt-5.6-terra`
 
-- 不会使用旧 ticker 的残留数据；
-- 不会用成本价冒充现价；
-- 不会把 UNKNOWN 当作“正常”；
-- 不会自动创造止损；
-- 不会因为 AI 没拿到资料而猜一个数字。
-
-这就是 V4.2 的核心设计：**宁可不给答案，也不因为缺数据给错误的 BUY。**
+如果这里显示错误，把错误文字或截图发给 ChatGPT 做真实联网验收。

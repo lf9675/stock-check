@@ -166,7 +166,7 @@ button.auto:hover{border-color:var(--info)}
 
 <header>
   <div class="hd-row">
-    <h1>决策终端<small>Decision Terminal v4.2.2 FINAL · Safety + Auto Data + AI Research · Fail Closed</small></h1>
+    <h1>决策终端<small>Decision Terminal v4.3 FINAL · Safety + Auto Data + AI Research · Fail Closed</small></h1>
     <div class="hd-note">API 抓数字 · AI 做研究<br>缺数据 = 不允许下单</div>
   </div>
 </header>
@@ -176,7 +176,7 @@ button.auto:hover{border-color:var(--info)}
 </div>
 
 <div class="auto-box">
-  <div class="auto-title">自动数据中心 <span class="data-badge">V4.2 FINAL</span></div>
+  <div class="auto-title">自动数据中心 <span class="data-badge">V4.3 FINAL</span></div>
   <div class="sub" style="margin:0">输入股票代码后，可自动抓取行情/均线/涨幅/结构、与持仓的真实历史相关性；第四步再由 SEC + AI 联网深研自动补基本面、林奇分类、板块、证伪条件与有来源的目标价。新 IPO / 亏损高成长股会切换到 SPEC 安全路径。抓不到的数据保持 UNKNOWN，不会偷偷使用默认值。</div>
   <div class="grid" style="margin-top:10px">
     <div class="f"><label>当前分析标的</label><input id="auto-tk" placeholder="NVDA" autocomplete="off"></div>
@@ -188,7 +188,7 @@ button.auto:hover{border-color:var(--info)}
     <button class="auto" onclick="fetchPortfolioAuto()">③ 自动算持仓相关性</button>
     <button class="auto" onclick="fetchAIResearchAuto()">④ SEC + AI 深研自动填写</button>
   </div>
-  <div id="auto-status" class="auto-status">尚未抓取。完整自动版需要 <code>TWELVE_DATA_API_KEY</code>、<code>OPENAI_API_KEY</code>、<code>SEC_USER_AGENT</code>；<code>FRED_API_KEY</code> 为建议增强。</div>
+  <div id="auto-status" class="auto-status">尚未抓取。完整自动版需要 <code>TWELVE_DATA_API_KEY</code>、<code>SEC_USER_AGENT</code>，以及 OpenAI / DeepSeek 至少一种 AI Key；<code>FRED_API_KEY</code> 为建议增强。</div>
   <div id="ai-research-out"></div>
 </div>
 
@@ -263,7 +263,7 @@ button.auto:hover{border-color:var(--info)}
 
 <section>
   <h2>第 0–3 层 · 机械淘汰</h2>
-  <div class="sub">漏斗的作用不是找出好股票，是<b>在 30 秒内砍掉一半名单</b>。下面三个链接把 V4.2 的机械筛选指标预设进 Finviz，点开就是筛好的结果。</div>
+  <div class="sub">漏斗的作用不是找出好股票，是<b>在 30 秒内砍掉一半名单</b>。下面三个链接把 V4.3 的机械筛选指标预设进 Finviz，点开就是筛好的结果。</div>
 
   <h3>预设筛选器</h3>
   <div class="links">
@@ -408,7 +408,7 @@ button.auto:hover{border-color:var(--info)}
 
 <section>
   <h2>AI 深研与人工复核</h2>
-  <div class="sub">V4.2 可以通过 Netlify 后端调用 SEC EDGAR + OpenAI 联网研究。AI 会自动填写可核实的基本面字段，但<b>不会把无法验证的内容伪装成事实</b>；每次研究都会显示来源。下面仍保留提示词生成器，作为 AI API 不可用时的备用路径。</div>
+  <div class="sub">V4.3 可以通过 Netlify 后端调用 SEC EDGAR + OpenAI / DeepSeek 联网研究。AI 会自动填写可核实的基本面字段，但<b>不会把无法验证的内容伪装成事实</b>；每次研究都会显示来源。下面仍保留提示词生成器，作为 AI API 不可用时的备用路径。</div>
 
   <div class="grid">
     <div class="f"><label>现价 <i>$</i></label><input id="d-px" type="number" step="0.01" placeholder="38.50"></div>
@@ -647,7 +647,7 @@ function positive(x){ return typeof x==='number' && isFinite(x) && x>0; }
 function isoToday(){ return new Date().toISOString().slice(0,10); }
 function ageDays(s){ if(!/^\d{4}-\d{2}-\d{2}$/.test(s||'')) return 9999; var d=new Date(s+'T00:00:00Z'); return Math.floor((Date.now()-d.getTime())/86400000); }
 function fresh(s,maxDays){ var a=ageDays(s); return a>=0 && a<=maxDays; }
-function makeAnalysisId(tk,dt){ return (tk||'NA').toUpperCase()+'-'+(dt||isoToday())+'-V4.2'; }
+function makeAnalysisId(tk,dt){ return (tk||'NA').toUpperCase()+'-'+(dt||isoToday())+'-V4.3'; }
 function autoStatus(msg,cls){ var e=document.getElementById('auto-status'); if(e){e.className='auto-status '+(cls||'');e.innerHTML=msg;} }
 const RULES={maxSinglePct:20,maxSectorPct:35,minCashPct:10,maxRiskPct:2,minR:2,stockFreshDays:4,marketFreshDays:4,sectorFreshDays:40,corrMid:0.5,corrHigh:0.7};
 
@@ -716,7 +716,7 @@ async function fetchPortfolioAuto(){
 async function fetchAIResearchAuto(){
   var tk=val('auto-tk').toUpperCase()||val('d-tk').toUpperCase()||val('b-tk').toUpperCase();
   if(!tk){autoStatus('请先输入股票代码。','bad');return;}
-  autoStatus('正在读取 SEC 并让 AI 联网深研 '+esc(tk)+'… 研究较行情抓取更慢，请保持页面打开。','wait');
+  autoStatus('正在读取 SEC 并让 AI 深研 '+esc(tk)+'… 研究较行情抓取更慢，请保持页面打开。','wait');
   var box=document.getElementById('ai-research-out'); if(box)box.innerHTML='';
   try{
     var r=await fetch('/.netlify/functions/ai-research',{method:'POST',headers:{'content-type':'application/json','accept':'application/json'},body:JSON.stringify({symbol:tk,price:num('b-px')||num('d-px'),sma:num('b-ma')||num('d-ma'),return60d:num('b-p60')||num('d-p60'),userView:val('d-view')})});
@@ -736,6 +736,13 @@ async function fetchAIResearchAuto(){
       if(Number.isFinite(a.targetPrice)){setv('b-tg',f2(a.targetPrice));if(a.targetSource)setv('b-ts',a.targetSource);if(a.secondSource)setv('b-ts2',a.secondSource);}
       if(a.lynchType==='spec'&&a.spec){if(Number.isFinite(a.spec.cashRunwayMonths))setv('b-spec-runway',a.spec.cashRunwayMonths);if(Number.isFinite(a.spec.dilution12mPct))setv('b-spec-dilution',a.spec.dilution12mPct);if(Number.isFinite(a.spec.nextUnlockDays))setv('b-spec-unlock',a.spec.nextUnlockDays);if(Number.isFinite(a.spec.revenueGrowthPct))setv('b-spec-revgrowth',a.spec.revenueGrowthPct);if(a.spec.financingRisk&&a.spec.financingRisk!=='unknown')setv('b-spec-funding',a.spec.financingRisk);if(a.spec.notes)setv('b-spec-note',a.spec.notes);}
       var h='<section style="margin-top:12px"><h2>AI 深研摘要 · '+esc(tk)+'</h2><div class="sub">'+esc(a.companyName||'')+' · 把握度 '+esc(a.confidence)+'% · 研究日期 '+esc(d.asOf||'')+'</div>';
+      if(d.webSearch===false){
+        h+='<div class="alert stop"><b>⚠ 本次 AI 未联网 · '+esc((d.provider||'')+(d.model?' / '+d.model:''))+'</b>'
+          +'该模型没有内置搜索能力，以下内容来自它的训练数据，可能已经过时。<br>'
+          +'· <b>目标价已被系统强制置空</b>，因为无法核实的目标价会直接污染 R 值计算。请自行到 StockAnalysis 或券商研报查证后手工填入。<br>'
+          +'· TTM EPS / PE 若不是来自下方 SEC 快照，一律不要采信。<br>'
+          +'· 可以参考的部分：商业逻辑、催化剂方向、反方观点、需要你去核实的证伪指标。</div>';
+      }
       h+=kv('林奇分类',a.lynchType||'UNKNOWN',a.lynchType?'p':'w')+kv('板块ETF',a.sectorEtf||'UNKNOWN',a.sectorEtf?'p':'w')+kv('TTM EPS',a.ttmEps===null?'UNKNOWN':String(a.ttmEps),a.epsStatus==='pos'?'p':a.epsStatus==='neg'?'w':'')+kv('目标价',a.targetPrice===null?'UNKNOWN':'$'+f2(a.targetPrice),a.targetPrice!==null?'w':'');
       if(a.targetRationale)h+='<div class="alert wait"><b>目标价依据</b>'+esc(a.targetRationale)+'</div>';
       if(a.catalysts&&a.catalysts.length)h+='<div class="alert pass"><b>催化剂</b>'+a.catalysts.map(esc).join('；')+'</div>';
@@ -743,9 +750,9 @@ async function fetchAIResearchAuto(){
       if(a.bearCases&&a.bearCases.length)h+='<div class="alert stop"><b>反方观点</b>'+a.bearCases.map(esc).join('；')+'</div>';
       if(a.sources&&a.sources.length){h+='<h3>来源 · 必须能点开复核</h3><div class="links">';a.sources.forEach(function(x){h+='<a href="'+esc(x.url)+'" target="_blank" rel="noopener"><div class="ln">'+esc(x.title||x.type||'来源')+' →</div><div class="ld">'+esc((x.date||'日期未标')+' · '+(x.type||''))+'</div></a>'});h+='</div>';}
       h+='</section>'; if(box)box.innerHTML=h;
-      autoStatus('SEC + AI 深研完成并已自动填写。请先阅读来源与反方观点，再运行个股闸门；AI 填写不等于自动批准。'+(d.warning?' '+esc(d.warning):''),'ok');
+      autoStatus('SEC + AI 深研完成并已自动填写。AI 提供商：'+esc((d.provider||'AI')+(d.model?' / '+d.model:''))+'。请先阅读来源与反方观点，再运行个股闸门；AI 填写不等于自动批准。'+(d.warning?' '+esc(d.warning):''),'ok');
     }else{
-      autoStatus('SEC 数据已返回，但 AI 未运行：'+esc(d.warning||'OPENAI_API_KEY 未设置')+'。可验证字段已尽力保留，其余继续 UNKNOWN。','wait');
+      autoStatus('SEC 数据已返回，但 AI 未运行：'+esc(d.warning||'未设置可用的 AI API Key')+'。可验证字段已尽力保留，其余继续 UNKNOWN。','wait');
       if(box&&sec)box.innerHTML='<div class="alert wait" style="margin-top:12px"><b>SEC 已连接</b>'+esc(sec.title||tk)+' · '+esc(sec.reason||'公开财务快照已读取，但 AI 未运行。')+'</div>';
     }
   }catch(e){autoStatus('AI 深研失败：'+esc(e.message)+'。已有行情数据不会被清空；基本面字段保持 UNKNOWN，系统不会放行。','bad');}
@@ -778,7 +785,7 @@ function runGates(){
   var maxRisk=isSpec?1:RULES.maxRiskPct; if(!(positive(riskPct)&&riskPct<=maxRisk)) errors.push('合法单笔风险(>0且≤'+maxRisk+'%)'); if(!cor) errors.push('相关性'); if(!secetf) errors.push('板块ETF');
   if(!isSpec && historyDays!==null && historyDays<150) errors.push('历史不足150个交易日：成熟公司闸门不适用，请先确认是否应分类为SPEC');
   if(isSpec){if(spr===null||spr<0)errors.push('SPEC现金跑道');if(spd===null||spd<0)errors.push('SPEC近12月稀释');if(!spf)errors.push('SPEC融资风险');}
-  if(errors.length){ out.innerHTML='<section><div class="alert stop"><b>DATA INCOMPLETE · 禁止判买入</b>缺少/无效：'+errors.join('、')+'。V4.2 不再替你使用乐观默认值。</div></section>'; LAST.gates=null; return; }
+  if(errors.length){ out.innerHTML='<section><div class="alert stop"><b>DATA INCOMPLETE · 禁止判买入</b>缺少/无效：'+errors.join('、')+'。V4.3 不再替你使用乐观默认值。</div></section>'; LAST.gates=null; return; }
 
   var dev=(px-ma)/ma*100, G=[];
   var g0;
@@ -831,7 +838,7 @@ function runGates(){
   else{
     R=(tg-px)/(px-stop); var riskAmt=acct*riskPct/100; shares=Math.floor(riskAmt/(px-stop)); posVal=shares*px;
     var cap=acct*(isSpec?10:RULES.maxSinglePct)/100; if(posVal>cap){capped=true;shares=Math.floor(cap/px);posVal=shares*px;} realRisk=shares*(px-stop);
-    if(ts2==='opp'||ts2==='none') g4={s:'wait',m:'降级',d:'目标价没有第二个独立方向一致的依据。V4.2 不允许用单一乐观目标价制造漂亮R值。'};
+    if(ts2==='opp'||ts2==='none') g4={s:'wait',m:'降级',d:'目标价没有第二个独立方向一致的依据。V4.3 不允许用单一乐观目标价制造漂亮R值。'};
     else if(R<RULES.minR) g4={s:'stop',m:'关闭',d:'R='+f1(R)+' < '+RULES.minR+'，赔率不够。'};
     else g4={s:'pass',m:'通过',d:'R='+f1(R)+'；计划内止损损失 $'+realRisk.toFixed(0)+'。<br><b>这不是最大亏损</b>，不包含跳空、滑点和流动性风险。'+(isSpec?' SPEC单仓上限10%。':'')+(capped?' 仓位已受上限压缩。':'')};
   }
@@ -842,9 +849,9 @@ function runGates(){
   G.push({no:'GATE 5',n:'基本面 · 证伪条件',r:g5});
 
   var firstStop=-1;for(var i=0;i<G.length;i++){if(G[i].r.s==='stop'){firstStop=i;break;}}var hasWait=G.some(function(g){return g.r.s==='wait';});var verdict=firstStop>=0?'不买':hasWait?'观望':'买入';var vclass=verdict==='买入'?'buy':verdict==='观望'?'watch':'no';
-  var html='<section><h2>'+esc(tk)+' · V4.2 闸门结果</h2><div class="sub">取价日期 '+esc(dt)+' · '+esc(ctype)+' · Analysis ID '+esc(makeAnalysisId(tk,dt))+'</div><div class="gates">';
+  var html='<section><h2>'+esc(tk)+' · V4.3 闸门结果</h2><div class="sub">取价日期 '+esc(dt)+' · '+esc(ctype)+' · Analysis ID '+esc(makeAnalysisId(tk,dt))+'</div><div class="gates">';
   for(var j=0;j<G.length;j++){var g=G[j],shut=(firstStop>=0&&j>firstStop)?' shut':'';html+='<div class="gate '+g.r.s+shut+'"><div class="gt"><span class="gno">'+g.no+'</span><span class="gname">'+g.n+'</span><span class="gmark">'+(shut?'— 已锁死':g.r.m)+'</span></div><div class="gdetail">'+(shut?'前一道门已关闭。':g.r.d)+'</div></div>';}
-  html+='</div><div class="verdict"><div class="stamp '+vclass+'"><span class="sv">'+verdict+'</span><span class="sl">V4.2 DECISION</span></div><div class="vtext"><div class="vh">'+(verdict==='买入'?'个股层通过，但最终报告未通过前不得下单':verdict==='观望'?'条件未完整落实':'存在硬否决')+'</div><div class="vb">所有 UNKNOWN、来源冲突和上层风险都会在最终报告再次 Fail Closed。</div></div></div>';
+  html+='</div><div class="verdict"><div class="stamp '+vclass+'"><span class="sv">'+verdict+'</span><span class="sl">V4.3 DECISION</span></div><div class="vtext"><div class="vh">'+(verdict==='买入'?'个股层通过，但最终报告未通过前不得下单':verdict==='观望'?'条件未完整落实':'存在硬否决')+'</div><div class="vb">所有 UNKNOWN、来源冲突和上层风险都会在最终报告再次 Fail Closed。</div></div></div>';
   if(verdict==='买入')html+='<div class="card-out"><div class="ch"><span>交易卡 · '+esc(tk)+'</span><span>'+entry+'</span></div><div class="cb">'+kv('入场价',f2(px),'')+kv('结构止损',f2(stop)+'（−'+f1((px-stop)/px*100)+'%）','s')+kv('目标价',f2(tg),'p')+kv('R值',f1(R),'p')+kv('股数',shares+' 股','')+kv('仓位市值','$'+posVal.toFixed(0),'')+kv('计划内止损损失','$'+realRisk.toFixed(0)+'（不含跳空/滑点）','w')+kv('证伪条件',inv,'')+'</div></div>';
   html+='</section>';
   LAST.gates={tk:tk,date:dt,analysisId:makeAnalysisId(tk,dt),secetf:secetf,ctype:ctype,isSpec:isSpec,verdict:verdict,entry:entry,px:px,stop:stop,tg:tg,R:R,shares:shares,posVal:posVal,realRisk:realRisk,gates:G,firstStop:firstStop,thesis:thesis,inv:inv,dev:dev,riskPct:riskPct};out.innerHTML=html;out.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1005,7 +1012,7 @@ function buildPrompt(){
   var dev='';
   if(px&&ma&&parseFloat(ma)>0) dev=f1((parseFloat(px)-parseFloat(ma))/parseFloat(ma)*100)+'%';
   var P=[];
-  P.push('请对 '+t+' 走完整的深研档七步框架（V4.2 FINAL 框架）。');
+  P.push('请对 '+t+' 走完整的深研档七步框架（V4.3 FINAL 框架）。');
   P.push('');
   P.push('【我已掌握的数据 · 请先 web_search 核实并标注日期】');
   P.push('· 现价：'+(px?'$'+px:'待你搜索'));
