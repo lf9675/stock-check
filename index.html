@@ -471,13 +471,31 @@ button.auto:hover{border-color:var(--info)}
 
   <h3>基础</h3>
   <div class="grid3">
-    <div class="f"><label>代码</label><input id="b-tk" placeholder="INTC" autocomplete="off"></div>
-    <div class="f"><label>现价 <i>$</i></label><input id="b-px" type="number" step="0.01" placeholder="38.50"></div>
+    <div class="f"><label>代码</label><input id="b-tk" placeholder="INTC" autocomplete="off" oninput="syncOwn()"></div>
+    <div class="f"><label>现价 <i>$</i></label><input id="b-px" type="number" step="0.01" placeholder="38.50" oninput="syncOwn()"></div>
     <div class="f"><label>取价日期 <i>· 必填</i></label><input id="b-dt" placeholder="2026-08-29"></div>
     <div class="f"><label>所属板块 ETF <i>· 如 XLK / XLI</i></label><input id="b-secetf" placeholder="XLK"></div>
     <div class="f"><label>历史交易日 <i>· 自动</i></label><input id="b-history-days" type="number" readonly placeholder="自动填入"></div>
     <div class="f"><label>趋势均线类型 <i>· 自动</i></label><input id="b-ma-kind" readonly placeholder="150日 / 新IPO用50日"></div>
   </div>
+
+  <h3 style="border-color:var(--stop);color:var(--stop)">前置门 · 这是新建仓还是加仓</h3>
+  <div class="alert stop" style="margin-bottom:12px"><b>为什么这一门排在最前面</b>
+    回测你的 BTX、SPCX、IBIT 三笔交易：判断错误的成本约 $500，<b>补仓造成的成本约 $8,500</b>。
+    真正让你亏钱的不是选错股票，是选错之后继续买。这一门在所有技术分析之前执行。</div>
+  <div class="grid3">
+    <div class="f"><label>本次意图</label>
+      <select id="b-intent" onchange="syncOwn()">
+        <option value="">— 请选择 —</option>
+        <option value="new">新建仓 · 目前完全没有这只</option>
+        <option value="add">加仓正股 · 已经持有</option>
+        <option value="put">卖 put（现金担保）</option>
+        <option value="call">卖 covered call</option>
+      </select></div>
+    <div class="f"><label>已持有股数 <i>· 没有填 0</i></label><input id="b-own-shares" type="number" step="1" placeholder="0" oninput="syncOwn()"></div>
+    <div class="f"><label>现有成本价 <i>$ · 没有留空</i></label><input id="b-own-cost" type="number" step="0.01" placeholder="" oninput="syncOwn()"></div>
+  </div>
+  <div id="own-hint" class="hint"></div>
 
   <h3>第 0 道门 · 资格（月线准入）</h3>
   <div class="grid">
@@ -1014,17 +1032,89 @@ function runGates(){
   var bw=num('b-bw'), bv=num('b-bv'), bp=num('b-bp'), s2w=num('b-s2w'), pv=val('b-pv'), st=val('b-st');
   var ts=val('b-ts'), ts2=val('b-ts2'), cor=val('b-cor'), secetf=val('b-secetf').toUpperCase();
   var acct=num('b-acct'), riskPct=num('b-risk'), thesis=val('b-th'), inv=val('b-inv');
+  var intent=val('b-intent'), ownSh=num('b-own-shares'), ownCost=num('b-own-cost');
   var isSpec=ctype==='spec', spr=num('b-spec-runway'), spd=num('b-spec-dilution'), spu=num('b-spec-unlock'), spg=num('b-spec-revgrowth'), spf=val('b-spec-funding');
   var errors=[];
+  if(!intent) errors.push('本次意图（新建仓/加仓/卖put/卖call）');
   if(!tk) errors.push('股票代码'); if(!ctype) errors.push('林奇分类'); if(!positive(px)) errors.push('现价'); if(!positive(ma)) errors.push('趋势均线'); if(!dt||!fresh(dt,RULES.stockFreshDays)) errors.push('新鲜的取价日期');
   if(!mdir) errors.push('长期趋势方向'); if(!madir) errors.push('趋势均线方向'); if(!eps) errors.push('TTM EPS状态');
   if(p60===null) errors.push('60日涨幅'); if(l52===null||l52<0) errors.push('低点距离'); if(!positive(acct)) errors.push('账户规模');
   var maxRisk=isSpec?1:RULES.maxRiskPct; if(!(positive(riskPct)&&riskPct<=maxRisk)) errors.push('合法单笔风险(>0且≤'+maxRisk+'%)'); if(!cor) errors.push('相关性'); if(!secetf) errors.push('板块ETF');
   if(!isSpec && historyDays!==null && historyDays<150) errors.push('历史不足150个交易日：成熟公司闸门不适用，请先确认是否应分类为SPEC');
+  if(historyDays===null) errors.push('可用历史交易日数（决定 30 周 MA 是否成立）');
   if(isSpec){if(spr===null||spr<0)errors.push('SPEC现金跑道');if(spd===null||spd<0)errors.push('SPEC近12月稀释');if(!spf)errors.push('SPEC融资风险');}
   if(errors.length){ out.innerHTML='<section><div class="alert stop"><b>DATA INCOMPLETE · 禁止判买入</b>缺少/无效：'+errors.join('、')+'。V4.3 不再替你使用乐观默认值。</div></section>'; LAST.gates=null; return; }
 
   var dev=(px-ma)/ma*100, G=[];
+
+  /* ══ 前置门 · 加仓审查（Livermore: never average down）══ */
+  var owns=(ownSh!==null&&ownSh>0), ownPnl=null, hardBlock=null;
+  if(owns&&positive(ownCost)) ownPnl=(px-ownCost)/ownCost*100;
+  var gm;
+  if(intent==='new'&&owns){
+    gm={s:'stop',m:'关闭',d:'你选了「新建仓」，但填了已持有 <code>'+ownSh+'</code> 股。<br>这不是新建仓，是加仓。请把意图改成「加仓正股」重新跑 —— <b>换个名字不改变资金流向。</b>'};
+    hardBlock='意图与持仓状态不符';
+  }else if(!owns&&(intent==='add'||intent==='call')){
+    gm={s:'stop',m:'关闭',d:'未持有该标的，无法加仓，也无法卖 covered call（那需要先有 100 股）。'};
+    hardBlock='未持仓却选择加仓/covered call';
+  }else if(intent==='new'){
+    gm={s:'pass',m:'通过',d:'全新标的，无历史包袱。按完整闸门评估。'};
+  }else if((intent==='add'||intent==='put')&&owns&&ownPnl===null){
+    gm={s:'stop',m:'关闭',d:'已持有但未填成本价，无法判断这是加仓还是补仓。<b>这正是最需要判断的时刻，不能跳过。</b>'};
+    hardBlock='已持仓但成本未知';
+  }else if((intent==='add'||intent==='put')&&owns&&ownPnl<0){
+    var addVal=(intent==='put')?'（卖 put 被行权 = 再接 100 股）':'';
+    var futureSh=ownSh+(intent==='put'?100:0);
+    gm={s:'stop',m:'否决',d:'<b>浮亏状态下加仓 = 摊平成本 = 你三笔失败交易的共同模式。</b><br>'
+      +'当前：<code>'+ownSh+'</code> 股 @ <code>$'+f2(ownCost)+'</code>，现价 <code>$'+f2(px)+'</code>，浮亏 <code>'+f1(ownPnl)+'%</code>'+addVal+'<br><br>'
+      +(intent==='put'
+        ? '<b>卖 put 在这里不是收权利金，是补仓的另一个名字。</b>股价越跌，你的仓位越大 —— 这与直接补仓在资金流向上完全一致。被行权后你将持有 <code>'+futureSh+'</code> 股。<br><br>'
+        : '')
+      +'对照回测：<br>· BTX $18 → 一路补仓 → 斩仓 <b>−$3,000</b><br>· SPCX $200 → 补到 $115 → 浮亏 <b>约 −$6,000</b><br>· IBIT 同样方法 → 赚钱，<b>那是比特币涨了，不是方法对</b><br><br>'
+      +'唯一合法的加仓是<b>金字塔加仓</b>：只在浮盈时加，且加仓量不超过首仓一半。<br>'
+      +'如果你认为这只值得买，正确动作是<b>先按止损规则处理现有仓位</b>，而不是在亏损上叠加。'};
+    hardBlock='浮亏加仓';
+  }else if(intent==='add'&&owns&&ownPnl>=0){
+    var maxAdd=Math.floor(ownSh*0.5);
+    gm={s:'wait',m:'限额',d:'浮盈 <code>+'+f1(ownPnl)+'%</code>，符合金字塔加仓的前提。<br>'
+      +'<b>本次加仓上限：'+maxAdd+' 股</b>（首仓 '+ownSh+' 股的一半）。<br>'
+      +'加仓后止损必须上移到<b>整体成本之上</b>，否则一次回调会把原本的盈利也吞掉。<br>下面的闸门仍要全部通过。'};
+  }else if(intent==='put'&&owns&&ownPnl>=0){
+    gm={s:'wait',m:'注意',d:'浮盈状态下卖 put 可以接受，但被行权后总仓位将达 <code>'+(ownSh+100)+'</code> 股。<br>请在第 4 道门确认这个数字仍在 20% 单仓上限内。'};
+  }else if(intent==='put'&&!owns){
+    gm={s:'pass',m:'通过',d:'未持仓卖 put = 用现金担保建立新仓位。按完整闸门评估，被行权价视同入场价。'};
+  }else if(intent==='call'){
+    gm={s:'pass',m:'通过',d:'卖 covered call <b>减少</b>敞口，不受加仓规则限制。<br>但仍须通过下方期权硬规则（EPS 为正、股价 &lt;$100、非 Stage 4、IV Rank &gt;20）。'};
+  }else{
+    gm={s:'stop',m:'关闭',d:'意图与持仓状态的组合无法识别，请检查填写。'};
+    hardBlock='输入组合无效';
+  }
+  G.push({no:'GATE -1',n:'加仓审查 · 绝不摊平',r:gm,pre:true});
+
+  /* ══ 新股门 · 30 周 MA 是否在数学上成立 ══ */
+  if(historyDays!==null&&historyDays<150){
+    G.push({pre:true,no:'IPO',n:'新股 · 技术闸门失效',r:{s:'stop',m:'否决',d:
+      '可用历史仅 <code>'+historyDays+'</code> 个交易日（&lt;150）。<b>30 周均线在数学上无法计算</b>，'
+      +'因此 Stage 判定、A1/A2 买点、结构止损三者<b>全部失效</b> —— 不是"数据暂缺"，是这些工具在此不成立。<br><br>'
+      +'SPCX 你就是在这个状态下买的：没有均线可参照，没有止损可放，于是下跌时唯一"有依据"的动作变成了补仓。<br><br>'
+      +'等满 150 个交易日再评估。若坚持参与，只能走 SPEC 路径 + 单笔风险 ≤1% + 仓位上限 5%，且<b>下单同时挂固定百分比止损</b>。'}});
+    if(!hardBlock) hardBlock='新股不足150交易日';
+  }
+
+  /* ══ 期权硬规则（仅在卖 put / 卖 call 时检查）══ */
+  if(intent==='put'||intent==='call'){
+    var ob=[];
+    if(eps==='neg') ob.push('规则 4：TTM EPS 为负 —— 亏损公司不卖权利金');
+    if(px>=100) ob.push('规则 6：股价 <code>$'+f2(px)+'</code> ≥ $100 —— 超出你的保证金管理线');
+    if(px<ma&&madir==='down') ob.push('规则 7：Stage 4 全面暂停期权');
+    if(isSpec) ob.push('亏损投机型标的不适用 Wheel —— 它没有可依赖的盈利底');
+    var go=ob.length
+      ? {s:'stop',m:'否决',d:'违反你自己的期权硬规则 '+ob.length+' 条：<br>· '+ob.join('<br>· ')+'<br><br><b>这些规则是你写的，不是我加的。</b>'}
+      : {s:'wait',m:'待查',d:'EPS、股价、Stage 三项通过。下单前还须自行确认：<br>· IV Rank &gt;20（Barchart）<br>· 距财报 ≥14 天（Market Chameleon）<br>· 45 DTE 甜点区，挂 50% 止盈 GTC'};
+    G.push({no:'OPT',n:'期权硬规则 · 九条',r:go,pre:true});
+    if(ob.length&&!hardBlock) hardBlock='违反期权硬规则';
+  }
+
   var g0;
   if(isSpec){
     var bad=[],wait=[];
@@ -1074,7 +1164,15 @@ function runGates(){
   else if(px<=stop) g4={s:'stop',m:'关闭',d:'结构止损不低于现价，输入/买点结构有误。'};
   else{
     R=(tg-px)/(px-stop); var riskAmt=acct*riskPct/100; shares=Math.floor(riskAmt/(px-stop)); posVal=shares*px;
-    var cap=acct*(isSpec?10:RULES.maxSinglePct)/100; if(posVal>cap){capped=true;shares=Math.floor(cap/px);posVal=shares*px;} realRisk=shares*(px-stop);
+    var cap=acct*(isSpec?10:RULES.maxSinglePct)/100; if(posVal>cap){capped=true;shares=Math.floor(cap/px);posVal=shares*px;}
+    var pyrCap=null;
+    if(intent==='add'&&owns&&ownPnl!==null&&ownPnl>=0){
+      pyrCap=Math.floor(ownSh*0.5);
+      if(shares>pyrCap){shares=pyrCap;posVal=shares*px;capped=true;}
+      var totalVal=(ownSh+shares)*px, totalCap=acct*(isSpec?10:RULES.maxSinglePct)/100;
+      if(totalVal>totalCap){shares=Math.max(0,Math.floor(totalCap/px)-ownSh);posVal=shares*px;capped=true;}
+    }
+    realRisk=shares*(px-stop);
     if(ts2==='opp'||ts2==='none') g4={s:'wait',m:'降级',d:'目标价没有第二个独立方向一致的依据。V4.3 不允许用单一乐观目标价制造漂亮R值。'};
     else if(R<RULES.minR) g4={s:'stop',m:'关闭',d:'R='+f1(R)+' < '+RULES.minR+'，赔率不够。'};
     else g4={s:'pass',m:'通过',d:'R='+f1(R)+'；计划内止损损失 $'+realRisk.toFixed(0)+'。<br><b>这不是最大亏损</b>，不包含跳空、滑点和流动性风险。'+(isSpec?' SPEC单仓上限10%。':'')+(capped?' 仓位已受上限压缩。':'')};
@@ -1087,9 +1185,9 @@ function runGates(){
 
   var firstStop=-1;for(var i=0;i<G.length;i++){if(G[i].r.s==='stop'){firstStop=i;break;}}var hasWait=G.some(function(g){return g.r.s==='wait';});var verdict=firstStop>=0?'不买':hasWait?'观望':'买入';var vclass=verdict==='买入'?'buy':verdict==='观望'?'watch':'no';
   var html='<section><h2>'+esc(tk)+' · V4.3 闸门结果</h2><div class="sub">取价日期 '+esc(dt)+' · '+esc(ctype)+' · Analysis ID '+esc(makeAnalysisId(tk,dt))+'</div><div class="gates">';
-  for(var j=0;j<G.length;j++){var g=G[j],shut=(firstStop>=0&&j>firstStop)?' shut':'';html+='<div class="gate '+g.r.s+shut+'"><div class="gt"><span class="gno">'+g.no+'</span><span class="gname">'+g.n+'</span><span class="gmark">'+(shut?'— 已锁死':g.r.m)+'</span></div><div class="gdetail">'+(shut?'前一道门已关闭。':g.r.d)+'</div></div>';}
+  for(var j=0;j<G.length;j++){var g=G[j],shut=(firstStop>=0&&j>firstStop&&!g.pre)?' shut':'';html+='<div class="gate '+g.r.s+shut+'"><div class="gt"><span class="gno">'+g.no+'</span><span class="gname">'+g.n+'</span><span class="gmark">'+(shut?'— 已锁死':g.r.m)+'</span></div><div class="gdetail">'+(shut?'前一道门已关闭。':g.r.d)+'</div></div>';}
   html+='</div><div class="verdict"><div class="stamp '+vclass+'"><span class="sv">'+verdict+'</span><span class="sl">V4.3 DECISION</span></div><div class="vtext"><div class="vh">'+(verdict==='买入'?'个股层通过，但最终报告未通过前不得下单':verdict==='观望'?'条件未完整落实':'存在硬否决')+'</div><div class="vb">所有 UNKNOWN、来源冲突和上层风险都会在最终报告再次 Fail Closed。</div></div></div>';
-  if(verdict==='买入')html+='<div class="card-out"><div class="ch"><span>交易卡 · '+esc(tk)+'</span><span>'+entry+'</span></div><div class="cb">'+kv('入场价',f2(px),'')+kv('结构止损',f2(stop)+'（−'+f1((px-stop)/px*100)+'%）','s')+kv('目标价',f2(tg),'p')+kv('R值',f1(R),'p')+kv('股数',shares+' 股','')+kv('仓位市值','$'+posVal.toFixed(0),'')+kv('计划内止损损失','$'+realRisk.toFixed(0)+'（不含跳空/滑点）','w')+kv('证伪条件',inv,'')+'</div></div>';
+  if(verdict==='买入')html+='<div class="card-out"><div class="ch"><span>交易卡 · '+esc(tk)+'</span><span>'+entry+'</span></div><div class="cb">'+kv('入场价',f2(px),'')+kv('结构止损',f2(stop)+'（−'+f1((px-stop)/px*100)+'%）','s')+kv('目标价',f2(tg),'p')+kv('R值',f1(R),'p')+kv('股数',shares+' 股'+(pyrCap!==null?'（金字塔上限 '+pyrCap+'，已含现有 '+ownSh+' 股）':''),'')+kv('仓位市值','$'+posVal.toFixed(0),'')+kv('计划内止损损失','$'+realRisk.toFixed(0)+'（不含跳空/滑点）','w')+kv('证伪条件',inv,'')+'</div></div>';
   html+='</section>';
   LAST.gates={tk:tk,date:dt,analysisId:makeAnalysisId(tk,dt),secetf:secetf,ctype:ctype,isSpec:isSpec,verdict:verdict,entry:entry,px:px,stop:stop,tg:tg,R:R,shares:shares,posVal:posVal,realRisk:realRisk,gates:G,firstStop:firstStop,thesis:thesis,inv:inv,dev:dev,riskPct:riskPct};out.innerHTML=html;out.scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -1546,6 +1644,33 @@ function reportText(tk,dt,final,fhead,vetoes,M,G,P,S,I,H,todo){
   L.push('');
   L.push('注：所有价格须在下单前用 moomoo 复核。本报告由规则引擎生成，不含任何预测。');
   return L.join('\n');
+}
+
+/* ═══════════════ 加仓审查辅助 ═══════════════ */
+function syncOwn(){
+  var box=document.getElementById('own-hint'); if(!box)return;
+  var tk=val('b-tk').toUpperCase(), intent=val('b-intent');
+  var sh=num('b-own-shares'), c=num('b-own-cost'), px=num('b-px');
+  if(tk&&(sh===null||sh==='')){
+    for(var i=0;i<HOLD.length;i++){
+      if(String(HOLD[i].t||'').toUpperCase()===tk){
+        setv('b-own-shares',HOLD[i].s||0);
+        if(HOLD[i].c) setv('b-own-cost',HOLD[i].c);
+        sh=num('b-own-shares'); c=num('b-own-cost');
+        break;
+      }
+    }
+  }
+  var msg='';
+  if(sh!==null&&sh>0&&positive(c)&&positive(px)){
+    var pnl=(px-c)/c*100;
+    msg='已持有 <b>'+sh+'</b> 股 @ $'+f2(c)+'，现价 $'+f2(px)+' → 浮'+(pnl>=0?'盈 <b style="color:var(--pass)">+':'亏 <b style="color:var(--stop)">')+f1(pnl)+'%</b>';
+    if(pnl<0&&(intent==='add'||intent==='put')) msg+='<br><b style="color:var(--stop)">⚠ 浮亏加仓将被前置门直接否决。</b>';
+    if(pnl>=0&&intent==='add') msg+='<br>金字塔加仓上限：<b>'+Math.floor(sh*0.5)+' 股</b>';
+  }else if(sh!==null&&sh>0&&!positive(c)){
+    msg='<b style="color:var(--stop)">已持有 '+sh+' 股但未填成本价 —— 无法判断加仓还是补仓，闸门会拒绝放行。</b>';
+  }
+  box.innerHTML=msg;
 }
 
 /* ═══════════════ 粗筛勾选表 ═══════════════ */
